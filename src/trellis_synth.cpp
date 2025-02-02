@@ -1,7 +1,6 @@
 /* Simple Audio library demonstration - pocket synth with C major scale and 4 wave types */
 
 #include <Arduino.h>
-
 #include <Audio.h>
 #include <Adafruit_NeoTrellisM4.h>
 #include "polysynth.h"
@@ -26,8 +25,28 @@ short wave_type[4] = {
     WAVEFORM_TRIANGLE,
 };
 
-float cmaj_low[8] = {130.81, 146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63};
-float cmaj_high[8] = {261.6, 293.7, 329.6, 349.2, 392.0, 440.0, 493.9, 523.3};
+// C major pentatonic: C, D, E, G, A (then C, D, E again up octave)
+float cmaj_pent_low[8] = {
+    130.81, // C
+    146.83, // D
+    164.81, // E
+    196.00, // G
+    220.00, // A
+    261.63, // C (8va)
+    293.66, // D (8va)
+    329.63  // E (8va)
+};
+
+float cmaj_pent_high[8] = {
+    261.63, // C
+    293.66, // D
+    329.63, // E
+    392.00, // G
+    440.00, // A
+    523.25, // C (8va)
+    587.33, // D (8va)
+    659.26  // E (8va)
+};
 
 AudioEffectDelay delay1;
 AudioMixer4 mixerLeft;
@@ -50,6 +69,7 @@ Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 void setup()
 {
   Serial.begin(115200);
+  // while (!Serial);
 
   trellis.begin();
   trellis.setBrightness(255);
@@ -62,13 +82,15 @@ void setup()
 
   synth.begin();
 
-  // Set up stereo mix
+  // reduce the gain on some channels, so half of the channels
+  // are "positioned" to the left, half to the right, but all
+  // are heard at least partially on both ears
   mixerLeft.gain(1, 0.36);
   mixerLeft.gain(3, 0.36);
   mixerRight.gain(0, 0.36);
   mixerRight.gain(2, 0.36);
 
-  // Set up delay
+  // set up delay effect
   delay1.delay(0, 110);
   delay1.delay(1, 220);
   delay1.delay(2, 660);
@@ -79,7 +101,7 @@ void setup()
 void noteOn(int num)
 {
   int voice = num / 8;
-  float *scale = (voice < 2) ? cmaj_low : cmaj_high;
+  float *scale = (voice < 2) ? cmaj_pent_low : cmaj_pent_high;
   float freq = scale[num % 8];
   synth.noteOn(num, freq, wave_type[voice % 4]);
 }
@@ -115,7 +137,8 @@ void loop()
     int keyindex = e.bit.KEY;
     if (e.bit.EVENT == KEY_JUST_PRESSED)
     {
-      trellis.setPixelColor(keyindex, Wheel(keyindex * 255 / 32));
+      // trellis.setPixelColor(keyindex, 0xFFFFFF); // plain white
+      trellis.setPixelColor(keyindex, Wheel(keyindex * 255 / 32)); // rainbow!
       noteOn(keyindex);
     }
     else if (e.bit.EVENT == KEY_JUST_RELEASED)

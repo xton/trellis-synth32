@@ -91,11 +91,14 @@ void PolySynth::noteOn(int noteNumber, float frequency, int waveform)
 
 void PolySynth::noteOff(int noteNumber)
 {
-    int voiceIndex = findVoiceForNote(noteNumber);
-    if (voiceIndex != -1)
+    // Check all voices for this note number (defensive)
+    for (int i = 0; i < NUM_VOICES; i++)
     {
-        envs[voiceIndex].noteOff();
-        voices[voiceIndex].active = false;
-        voices[voiceIndex].noteNumber = -1;
+        if (voices[i].active && voices[i].noteNumber == noteNumber)
+        {
+            envs[i].noteOff();
+            voices[i].active = false;
+            voices[i].noteNumber = -1;
+        }
     }
 }
