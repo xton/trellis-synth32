@@ -4,6 +4,7 @@
 
 #include <Audio.h>
 #include <Adafruit_NeoTrellisM4.h>
+#include "polysynth.h"
 
 #ifdef __SAMD51__
 // Define strong symbols for these handlers to avoid them being clobbered by the weak symbols in coretex_handlers.c
@@ -16,13 +17,7 @@ void DMAC_4_Handler(void) { DMAC_0_Handler(); }
 
 uint32_t Wheel(byte WheelPos);
 
-AudioSynthWaveform wave0, wave1, wave2, wave3;
-AudioSynthWaveform *waves[4] = {
-    &wave0,
-    &wave1,
-    &wave2,
-    &wave3,
-};
+PolySynth synth;
 
 short wave_type[4] = {
     WAVEFORM_SINE,
@@ -34,111 +29,84 @@ short wave_type[4] = {
 float cmaj_low[8] = {130.81, 146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63};
 float cmaj_high[8] = {261.6, 293.7, 329.6, 349.2, 392.0, 440.0, 493.9, 523.3};
 
-AudioEffectEnvelope env0, env1, env2, env3;
-AudioEffectEnvelope *envs[4] = {
-    &env0,
-    &env1,
-    &env2,
-    &env3,
-};
-
 AudioEffectDelay delay1;
-
-AudioConnection patchCord01(wave0, env0);
-AudioConnection patchCord02(wave1, env1);
-AudioConnection patchCord03(wave2, env2);
-AudioConnection patchCord04(wave3, env3);
-AudioConnection patchCord08(env3, delay1);
-
-AudioMixer4 mixer1;
-
-AudioConnection patchCord17(env0, 0, mixer1, 0);
-AudioConnection patchCord18(env1, 0, mixer1, 1);
-AudioConnection patchCord19(env2, 0, mixer1, 2);
-AudioConnection patchCord20(env3, 0, mixer1, 3);
-
 AudioMixer4 mixerLeft;
 AudioMixer4 mixerRight;
-
 AudioOutputAnalogStereo audioOut;
 
-AudioConnection patchCord33(mixer1, 0, mixerLeft, 0);
-AudioConnection patchCord38(delay1, 0, mixerLeft, 1);
-AudioConnection patchCord39(delay1, 1, mixerLeft, 2);
-AudioConnection patchCord37(mixer1, 0, mixerRight, 0);
-AudioConnection patchCord40(delay1, 2, mixerRight, 1);
-AudioConnection patchCord43(delay1, 3, mixerRight, 2);
-AudioConnection patchCord41(mixerLeft, 0, audioOut, 0);
-AudioConnection patchCord42(mixerRight, 0, audioOut, 1);
+// Connect synth output to delay and stereo mix
+AudioConnection patchCord1(synth.getOutputMixer(), 0, delay1, 0);
+AudioConnection patchCord2(synth.getOutputMixer(), 0, mixerLeft, 0);
+AudioConnection patchCord3(synth.getOutputMixer(), 0, mixerRight, 0);
+AudioConnection patchCord4(delay1, 0, mixerLeft, 1);
+AudioConnection patchCord5(delay1, 1, mixerLeft, 2);
+AudioConnection patchCord6(delay1, 2, mixerRight, 1);
+AudioConnection patchCord7(delay1, 3, mixerRight, 2);
+AudioConnection patchCord8(mixerLeft, 0, audioOut, 0);
+AudioConnection patchCord9(mixerRight, 0, audioOut, 1);
 
 Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 
 void setup()
 {
   Serial.begin(115200);
-  // while (!Serial);
 
   trellis.begin();
   trellis.setBrightness(255);
 
-  AudioMemory(120);
+  AudioMemory(180); // Increased for 8-voice polyphony
 
-  // reduce the gain on some channels, so half of the channels
-  // are "positioned" to the left, half to the right, but all
-  // are heard at least partially on both ears
+  // Initialize processor and memory measurements
+  AudioProcessorUsageMaxReset();
+  AudioMemoryUsageMaxReset();
+
+  synth.begin();
+
+  // Set up stereo mix
   mixerLeft.gain(1, 0.36);
   mixerLeft.gain(3, 0.36);
   mixerRight.gain(0, 0.36);
   mixerRight.gain(2, 0.36);
 
-  // set envelope parameters, for pleasing sound :-)
-  for (int i = 0; i < 4; i++)
-  {
-    envs[i]->attack(9.2);
-    envs[i]->hold(2.1);
-    envs[i]->decay(31.4);
-    envs[i]->sustain(0.6);
-    envs[i]->release(84.5);
-    // uncomment these to hear without envelope effects
-    // envs[i]->attack(0.0);
-    // envs[i]->hold(0.0);
-    // envs[i]->decay(0.0);
-    // envs[i]->release(0.0);
-  }
-
+  // Set up delay
   delay1.delay(0, 110);
   delay1.delay(1, 220);
   delay1.delay(2, 660);
 
   Serial.println("setup done");
-
-  // Initialize processor and memory measurements
-  AudioProcessorUsageMaxReset();
-  AudioMemoryUsageMaxReset();
 }
 
 void noteOn(int num)
 {
   int voice = num / 8;
-  float *scale;
-  if (voice == 0 || voice == 1)
-    scale = cmaj_low;
-  else
-    scale = cmaj_high;
-  AudioNoInterrupts();
-  waves[voice]->begin(.5, scale[num % 8], wave_type[voice]);
-  envs[voice]->noteOn();
-  AudioInterrupts();
+  float *scale = (voice < 2) ? cmaj_low : cmaj_high;
+  float freq = scale[num % 8];
+  synth.noteOn(num, freq, wave_type[voice % 4]);
 }
 
 void noteOff(int num)
 {
-  int voice = num / 8;
-  envs[voice]->noteOff();
+  synth.noteOff(num);
 }
 
 void loop()
 {
+  // Monitor audio system resources
+  if (millis() % 5000 == 0)
+  { // Print every 5 seconds
+    Serial.print("Memory Usage: ");
+    Serial.print(AudioMemoryUsage());
+    Serial.print(" blocks (max: ");
+    Serial.print(AudioMemoryUsageMax());
+    Serial.println(")");
+
+    Serial.print("CPU Usage: ");
+    Serial.print(AudioProcessorUsage());
+    Serial.print("% (max: ");
+    Serial.print(AudioProcessorUsageMax());
+    Serial.println("%)");
+  }
+
   trellis.tick();
 
   while (trellis.available())
@@ -147,8 +115,7 @@ void loop()
     int keyindex = e.bit.KEY;
     if (e.bit.EVENT == KEY_JUST_PRESSED)
     {
-      // trellis.setPixelColor(keyindex, 0xFFFFFF); // plain white
-      trellis.setPixelColor(keyindex, Wheel(keyindex * 255 / 32)); // rainbow!
+      trellis.setPixelColor(keyindex, Wheel(keyindex * 255 / 32));
       noteOn(keyindex);
     }
     else if (e.bit.EVENT == KEY_JUST_RELEASED)
