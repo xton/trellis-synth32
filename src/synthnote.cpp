@@ -15,11 +15,11 @@ SynthNote::SynthNote() : baseFreq(0), detune(0.1)
 void SynthNote::begin()
 {
     // Set envelope parameters
-    env.attack(10.0);
-    env.hold(2.0);
-    env.decay(35.0);
-    env.sustain(0.8);
-    env.release(300.0);
+    env.attack(9.2);
+    env.hold(2.1);
+    env.decay(31.4);
+    env.sustain(0.6);
+    env.release(85.5);
 
     // Start with silent oscillators
     waveform1.begin(0.0, baseFreq, WAVEFORM_SAWTOOTH);

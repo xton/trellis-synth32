@@ -13,11 +13,8 @@ private:
     // Audio routing
     AudioConnection patchW1{waveform1, 0, waveMixer, 0};
     AudioConnection patchW2{waveform2, 0, waveMixer, 1};
-
-    AudioConnection patchE{waveMixer, 0, env, 0};
-
-    // AudioConnection patchMF{waveMixer, 0, filter, 0};
-    // AudioConnection patchFE{filter, 0, env, 0};
+    AudioConnection patchMF{waveMixer, 0, filter, 0};
+    AudioConnection patchFE{filter, 0, env, 0};
 
     float baseFreq;
     float detune;

@@ -3,6 +3,7 @@
 #include <Audio.h>
 #include "inote.h"
 #include "synthnote.h"
+#include "guitarnote.h"
 #include "effect_dynamics.h"
 
 // Will need to include other note types when we create them
@@ -67,10 +68,10 @@ class Polysynth32
 {
 private:
     // Note: GuitarNote and DrumNote still need to be implemented
-    SynthRow<SynthNote> synthRow1; // Row 0: Synth sounds
-    SynthRow<SynthNote> synthRow2; // Row 1: More synth sounds
-    SynthRow<SynthNote> synthRow3; // Row 2: More synth sounds for now
-    SynthRow<SynthNote> synthRow4; // Row 3: More synth sounds for now
+    SynthRow<GuitarNote> synthRow1; // Row 0: Guitar sounds
+    SynthRow<SynthNote> synthRow2;  // Row 1: Synth sounds
+    SynthRow<SynthNote> synthRow3;  // Row 2: More synth sounds for now
+    SynthRow<SynthNote> synthRow4;  // Row 3: More synth sounds for now
 
     // Final mixing and limiting stage
     AudioMixer4 finalMixLeft;

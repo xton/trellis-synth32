@@ -73,23 +73,38 @@ Polysynth32::Polysynth32()
 
 void Polysynth32::setupScales()
 {
-    // C major pentatonic base frequencies for each row (C2, C3, C4, C5)
+    // Base frequencies for each octave (C)
     constexpr float C2 = 65.41;  // C2
-    constexpr float C3 = 130.81; // C3
-    constexpr float C4 = 261.63; // C4
+    constexpr float C3 = 130.81; // C3 = 130.81 Hz
+    constexpr float C4 = 261.63; // C4 = Middle C = 261.63 Hz
     constexpr float C5 = 523.25; // C5
 
-    // Major pentatonic intervals: root, major second, major third, perfect fifth, major sixth
-    // Then repeat first three notes up an octave
-    constexpr int pentatonic[] = {0, 2, 4, 7, 9, 12, 14, 16};
+    // Row 1: C3 pentatonic
+    scaleRow1[0] = 130.81; // C3
+    scaleRow1[1] = 146.83; // D3
+    scaleRow1[2] = 164.81; // E3
+    scaleRow1[3] = 196.00; // G3
+    scaleRow1[4] = 220.00; // A3
+    scaleRow1[5] = 261.63; // C4
+    scaleRow1[6] = 293.66; // D4
+    scaleRow1[7] = 329.63; // E4
 
-    // Setup each row
+    // Row 2: Same pattern one octave up (C4 pentatonic)
     for (int i = 0; i < 8; i++)
     {
-        scaleRow1[i] = makeNoteFreq(C2, pentatonic[i]); // C2 pentatonic
-        scaleRow2[i] = makeNoteFreq(C3, pentatonic[i]); // C3 pentatonic
-        scaleRow3[i] = makeNoteFreq(C4, pentatonic[i]); // C4 pentatonic
-        scaleRow4[i] = makeNoteFreq(C5, pentatonic[i]); // C5 pentatonic
+        scaleRow2[i] = scaleRow1[i] * 2.0;
+    }
+
+    // Row 3: Two octaves up
+    for (int i = 0; i < 8; i++)
+    {
+        scaleRow3[i] = scaleRow1[i] * 4.0;
+    }
+
+    // Row 4: Three octaves up
+    for (int i = 0; i < 8; i++)
+    {
+        scaleRow4[i] = scaleRow1[i] * 8.0;
     }
 }
 
