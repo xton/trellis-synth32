@@ -5,6 +5,7 @@
 #include "synthnote.h"
 #include "guitarnote.h"
 #include "effect_dynamics.h"
+#include "simplesynthnote.h"
 
 // Will need to include other note types when we create them
 // #include "guitarnote.h"
@@ -68,10 +69,10 @@ class Polysynth32
 {
 private:
     // Note: GuitarNote and DrumNote still need to be implemented
-    SynthRow<GuitarNote> synthRow1; // Row 0: Guitar sounds
-    SynthRow<SynthNote> synthRow2;  // Row 1: Synth sounds
-    SynthRow<SynthNote> synthRow3;  // Row 2: More synth sounds for now
-    SynthRow<SynthNote> synthRow4;  // Row 3: More synth sounds for now
+    SynthRow<GuitarNote> synthRow1;      // Row 0: Guitar sounds
+    SynthRow<SimpleSynthNote> synthRow2; // Row 1: Synth sounds
+    SynthRow<SynthNote> synthRow3;       // Row 2: More synth sounds for now
+    SynthRow<SynthNote> synthRow4;       // Row 3: More synth sounds for now
 
     // Final mixing and limiting stage
     AudioMixer4 finalMixLeft;
@@ -79,14 +80,32 @@ private:
     AudioEffectDynamics limiterLeft;
     AudioEffectDynamics limiterRight;
 
+    AudioEffectDelay delayL;
+    AudioMixer4 delayMixL;
+    AudioEffectDelay delayR;
+    AudioMixer4 delayMixR;
+
     // Audio connections for final mix stage
     AudioConnection patchL1{synthRow1.getOutputLeft(), 0, finalMixLeft, 0};
-    AudioConnection patchL2{synthRow2.getOutputLeft(), 0, finalMixLeft, 1};
+
+    // AudioConnection patchL2{synthRow2.getOutputLeft(), 0, finalMixLeft, 1};
+    AudioConnection patchL2Da{synthRow2.getOutputLeft(), 0, delayL, 0};
+    AudioConnection patchL2Db{synthRow2.getOutputLeft(), 0, delayMixL, 0};
+    AudioConnection patchL2Dc{delayL, 0, delayMixL, 1};
+    AudioConnection patchL2Dd{delayL, 1, delayMixL, 2};
+    AudioConnection patchL2De{delayMixL, 0, finalMixLeft, 1};
+
     AudioConnection patchL3{synthRow3.getOutputLeft(), 0, finalMixLeft, 2};
     AudioConnection patchL4{synthRow4.getOutputLeft(), 0, finalMixLeft, 3};
 
     AudioConnection patchR1{synthRow1.getOutputRight(), 0, finalMixRight, 0};
-    AudioConnection patchR2{synthRow2.getOutputRight(), 0, finalMixRight, 1};
+    // AudioConnection patchR2{synthRow2.getOutputRight(), 0, finalMixRight, 1};
+    AudioConnection patchR2Da{synthRow2.getOutputRight(), 0, delayR, 0};
+    AudioConnection patchR2Db{synthRow2.getOutputRight(), 0, delayMixR, 0};
+    AudioConnection patchR2Dc{delayR, 0, delayMixR, 1};
+    AudioConnection patchR2Dd{delayR, 1, delayMixR, 2};
+    AudioConnection patchR2De{delayMixR, 0, finalMixRight, 1};
+
     AudioConnection patchR3{synthRow3.getOutputRight(), 0, finalMixRight, 2};
     AudioConnection patchR4{synthRow4.getOutputRight(), 0, finalMixRight, 3};
 

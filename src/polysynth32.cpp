@@ -73,11 +73,6 @@ Polysynth32::Polysynth32()
 
 void Polysynth32::setupScales()
 {
-    // Base frequencies for each octave (C)
-    constexpr float C2 = 65.41;  // C2
-    constexpr float C3 = 130.81; // C3 = 130.81 Hz
-    constexpr float C4 = 261.63; // C4 = Middle C = 261.63 Hz
-    constexpr float C5 = 523.25; // C5
 
     // Row 1: C3 pentatonic
     scaleRow1[0] = 130.81; // C3
@@ -124,13 +119,25 @@ void Polysynth32::begin()
     synthRow3.begin();
     synthRow4.begin();
 
+    // delay
+    delayL.delay(0, 110);
+    delayL.delay(1, 220);
+    delayR.delay(0, 220);
+    delayR.delay(1, 660);
+    delayMixL.gain(0, 0.64);
+    delayMixL.gain(1, 0.36);
+    delayMixL.gain(2, 0.36);
+    delayMixR.gain(0, 0.36);
+    delayMixR.gain(1, 0.64);
+    delayMixR.gain(2, 0.36);
+
     // Set up limiters with fast attack, medium release
-    limiterLeft.compression(-12.0, 0.01, 0.06, 4.0);
-    limiterRight.compression(-12.0, 0.01, 0.06, 4.0);
     // Start limiting at -12 dB
     // 10ms attack
     // 60ms release
     // 4:1 compression ratio
+    limiterLeft.compression(-12.0, 0.01, 0.06, 4.0);
+    limiterRight.compression(-12.0, 0.01, 0.06, 4.0);
 }
 
 void Polysynth32::noteOn(int noteIndex)
