@@ -19,10 +19,10 @@ uint32_t Wheel(byte WheelPos);
 PolySynth synth;
 
 short wave_type[4] = {
-    WAVEFORM_SINE,
+    WAVEFORM_SAWTOOTH_REVERSE,
     WAVEFORM_SQUARE,
     WAVEFORM_SAWTOOTH,
-    WAVEFORM_TRIANGLE,
+    WAVEFORM_SQUARE,
 };
 
 // C major pentatonic: C, D, E, G, A (then C, D, E again up octave)
