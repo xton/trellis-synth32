@@ -110,15 +110,12 @@ void Polysynth32::begin()
     synthRow4.begin();
 
     // Set up limiters with fast attack, medium release
-    limiterLeft.threshold(-12.0); // Start limiting at -12 dB
-    limiterLeft.attack(0.01);     // 10ms attack
-    limiterLeft.release(60.0);    // 60ms release
-    limiterLeft.ratio(4.0);       // 4:1 compression ratio
-
-    limiterRight.threshold(-12.0);
-    limiterRight.attack(0.01);
-    limiterRight.release(60.0);
-    limiterRight.ratio(4.0);
+    limiterLeft.compression(-12.0, 0.01, 0.06, 4.0);
+    limiterRight.compression(-12.0, 0.01, 0.06, 4.0);
+    // Start limiting at -12 dB
+    // 10ms attack
+    // 60ms release
+    // 4:1 compression ratio
 }
 
 void Polysynth32::noteOn(int noteIndex)

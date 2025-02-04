@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <Audio.h>
 #include <Adafruit_NeoTrellisM4.h>
-#include "polysynth.h"
+#include "polysynth32.h"
 
 #ifdef __SAMD51__
 // Define strong symbols for these handlers to avoid them being clobbered by the weak symbols in coretex_handlers.c
@@ -16,53 +16,42 @@ void DMAC_4_Handler(void) { DMAC_0_Handler(); }
 
 uint32_t Wheel(byte WheelPos);
 
-PolySynth synth;
+Polysynth32 synth;
 
-short wave_type[4] = {
-    WAVEFORM_SAWTOOTH_REVERSE,
-    WAVEFORM_SQUARE,
-    WAVEFORM_SAWTOOTH,
-    WAVEFORM_SQUARE,
-};
+// short wave_type[4] = {
+//     WAVEFORM_SAWTOOTH_REVERSE,
+//     WAVEFORM_SQUARE,
+//     WAVEFORM_SAWTOOTH,
+//     WAVEFORM_SQUARE,
+// };
 
-// C major pentatonic: C, D, E, G, A (then C, D, E again up octave)
-float cmaj_pent_low[8] = {
-    130.81, // C
-    146.83, // D
-    164.81, // E
-    196.00, // G
-    220.00, // A
-    261.63, // C (8va)
-    293.66, // D (8va)
-    329.63  // E (8va)
-};
+// // C major pentatonic: C, D, E, G, A (then C, D, E again up octave)
+// float cmaj_pent_low[8] = {
+//     130.81, // C
+//     146.83, // D
+//     164.81, // E
+//     196.00, // G
+//     220.00, // A
+//     261.63, // C (8va)
+//     293.66, // D (8va)
+//     329.63  // E (8va)
+// };
 
-float cmaj_pent_high[8] = {
-    261.63, // C
-    293.66, // D
-    329.63, // E
-    392.00, // G
-    440.00, // A
-    523.25, // C (8va)
-    587.33, // D (8va)
-    659.26  // E (8va)
-};
+// float cmaj_pent_high[8] = {
+//     261.63, // C
+//     293.66, // D
+//     329.63, // E
+//     392.00, // G
+//     440.00, // A
+//     523.25, // C (8va)
+//     587.33, // D (8va)
+//     659.26  // E (8va)
+// };
 
-AudioEffectDelay delay1;
-AudioMixer4 mixerLeft;
-AudioMixer4 mixerRight;
 AudioOutputAnalogStereo audioOut;
 
-// Connect synth output to delay and stereo mix
-AudioConnection patchCord1(synth.getOutputMixer(), 0, delay1, 0);
-AudioConnection patchCord2(synth.getOutputMixer(), 0, mixerLeft, 0);
-AudioConnection patchCord3(synth.getOutputMixer(), 0, mixerRight, 0);
-AudioConnection patchCord4(delay1, 0, mixerLeft, 1);
-AudioConnection patchCord5(delay1, 1, mixerLeft, 2);
-AudioConnection patchCord6(delay1, 2, mixerRight, 1);
-AudioConnection patchCord7(delay1, 3, mixerRight, 2);
-AudioConnection patchCord8(mixerLeft, 0, audioOut, 0);
-AudioConnection patchCord9(mixerRight, 0, audioOut, 1);
+AudioConnection patchCord8(synth.getOutputLeft(), 0, audioOut, 0);
+AudioConnection patchCord9(synth.getOutputRight(), 0, audioOut, 1);
 
 Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 
@@ -82,28 +71,29 @@ void setup()
 
   synth.begin();
 
-  // reduce the gain on some channels, so half of the channels
-  // are "positioned" to the left, half to the right, but all
-  // are heard at least partially on both ears
-  mixerLeft.gain(1, 0.36);
-  mixerLeft.gain(3, 0.36);
-  mixerRight.gain(0, 0.36);
-  mixerRight.gain(2, 0.36);
+  // // reduce the gain on some channels, so half of the channels
+  // // are "positioned" to the left, half to the right, but all
+  // // are heard at least partially on both ears
+  // mixerLeft.gain(1, 0.36);
+  // mixerLeft.gain(3, 0.36);
+  // mixerRight.gain(0, 0.36);
+  // mixerRight.gain(2, 0.36);
 
-  // set up delay effect
-  delay1.delay(0, 110);
-  delay1.delay(1, 220);
-  delay1.delay(2, 660);
+  // // set up delay effect
+  // delay1.delay(0, 110);
+  // delay1.delay(1, 220);
+  // delay1.delay(2, 660);
 
   Serial.println("setup done");
 }
 
 void noteOn(int num)
 {
-  int voice = num / 8;
-  float *scale = (voice < 2) ? cmaj_pent_low : cmaj_pent_high;
-  float freq = scale[num % 8];
-  synth.noteOn(num, freq, wave_type[voice % 4]);
+  // int voice = num / 8;
+  // float *scale = (voice < 2) ? cmaj_pent_low : cmaj_pent_high;
+  // float freq = scale[num % 8];
+  // synth.noteOn(num, freq, wave_type[voice % 4]);
+  synth.noteOn(num);
 }
 
 void noteOff(int num)

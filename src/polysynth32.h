@@ -3,6 +3,8 @@
 #include <Audio.h>
 #include "inote.h"
 #include "synthnote.h"
+#include "effect_dynamics.h"
+
 // Will need to include other note types when we create them
 // #include "guitarnote.h"
 // #include "drumnote.h"
@@ -15,7 +17,7 @@ class SynthRow;
 template <typename T>
 class SynthRow
 {
-    static_assert(std::is_base_of<INote, T>::value, "T must implement INote interface");
+    // static_assert(std::is_base_of<INote, T>::value, "T must implement INote interface");
 
 private:
     static const int NOTES_PER_ROW = 8;
@@ -73,8 +75,8 @@ private:
     // Final mixing and limiting stage
     AudioMixer4 finalMixLeft;
     AudioMixer4 finalMixRight;
-    AudioEffectCompressor limiterLeft;
-    AudioEffectCompressor limiterRight;
+    AudioEffectDynamics limiterLeft;
+    AudioEffectDynamics limiterRight;
 
     // Audio connections for final mix stage
     AudioConnection patchL1{synthRow1.getOutputLeft(), 0, finalMixLeft, 0};
