@@ -6,71 +6,15 @@
 #include "guitarnote.h"
 #include "effect_dynamics.h"
 #include "simplesynthnote.h"
-
-// Will need to include other note types when we create them
-// #include "guitarnote.h"
-// #include "drumnote.h"
-
-// Forward declaration for the row template
-template <typename T>
-class SynthRow;
-
-// Each row manages 8 notes of the same type
-template <typename T>
-class SynthRow
-{
-    // static_assert(std::is_base_of<INote, T>::value, "T must implement INote interface");
-
-private:
-    static const int NOTES_PER_ROW = 8;
-    T notes[NOTES_PER_ROW];
-    AudioMixer4 mixLeft1;   // Mixes notes 0-3
-    AudioMixer4 mixLeft2;   // Mixes notes 4-7
-    AudioMixer4 finalLeft;  // Combines left mixers
-    AudioMixer4 mixRight1;  // Mixes notes 0-3
-    AudioMixer4 mixRight2;  // Mixes notes 4-7
-    AudioMixer4 finalRight; // Combines right mixers
-
-    // Audio connections for note outputs to first layer mixers
-    AudioConnection patchL1_0;
-    AudioConnection patchL1_1;
-    AudioConnection patchL1_2;
-    AudioConnection patchL1_3;
-    AudioConnection patchL2_0;
-    AudioConnection patchL2_1;
-    AudioConnection patchL2_2;
-    AudioConnection patchL2_3;
-    AudioConnection patchR1_0;
-    AudioConnection patchR1_1;
-    AudioConnection patchR1_2;
-    AudioConnection patchR1_3;
-    AudioConnection patchR2_0;
-    AudioConnection patchR2_1;
-    AudioConnection patchR2_2;
-    AudioConnection patchR2_3;
-
-    // Audio connections for mixer routing
-    AudioConnection patchLF1;
-    AudioConnection patchLF2;
-    AudioConnection patchRF1;
-    AudioConnection patchRF2;
-
-public:
-    SynthRow();
-    void begin();
-    void noteOn(int index);
-    void noteOff(int index);
-    AudioStream &getOutputLeft() { return finalLeft; }
-    AudioStream &getOutputRight() { return finalRight; }
-    void setScale(const float *frequencies);
-};
+#include "synthrow.h"
+#include "delayrow.h"
 
 class Polysynth32
 {
 private:
     // Note: GuitarNote and DrumNote still need to be implemented
     SynthRow<GuitarNote> synthRow1;      // Row 0: Guitar sounds
-    SynthRow<SimpleSynthNote> synthRow2; // Row 1: Synth sounds
+    DelayRow<SimpleSynthNote> synthRow2; // Row 1: Synth sounds
     SynthRow<SynthNote> synthRow3;       // Row 2: More synth sounds for now
     SynthRow<SynthNote> synthRow4;       // Row 3: More synth sounds for now
 
@@ -80,32 +24,15 @@ private:
     AudioEffectDynamics limiterLeft;
     AudioEffectDynamics limiterRight;
 
-    AudioEffectDelay delayL;
-    AudioMixer4 delayMixL;
-    AudioEffectDelay delayR;
-    AudioMixer4 delayMixR;
-
     // Audio connections for final mix stage
     AudioConnection patchL1{synthRow1.getOutputLeft(), 0, finalMixLeft, 0};
 
-    // AudioConnection patchL2{synthRow2.getOutputLeft(), 0, finalMixLeft, 1};
-    AudioConnection patchL2Da{synthRow2.getOutputLeft(), 0, delayL, 0};
-    AudioConnection patchL2Db{synthRow2.getOutputLeft(), 0, delayMixL, 0};
-    AudioConnection patchL2Dc{delayL, 0, delayMixL, 1};
-    AudioConnection patchL2Dd{delayL, 1, delayMixL, 2};
-    AudioConnection patchL2De{delayMixL, 0, finalMixLeft, 1};
-
+    AudioConnection patchL2{synthRow2.getOutputLeft(), 0, finalMixLeft, 1};
     AudioConnection patchL3{synthRow3.getOutputLeft(), 0, finalMixLeft, 2};
     AudioConnection patchL4{synthRow4.getOutputLeft(), 0, finalMixLeft, 3};
 
     AudioConnection patchR1{synthRow1.getOutputRight(), 0, finalMixRight, 0};
-    // AudioConnection patchR2{synthRow2.getOutputRight(), 0, finalMixRight, 1};
-    AudioConnection patchR2Da{synthRow2.getOutputRight(), 0, delayR, 0};
-    AudioConnection patchR2Db{synthRow2.getOutputRight(), 0, delayMixR, 0};
-    AudioConnection patchR2Dc{delayR, 0, delayMixR, 1};
-    AudioConnection patchR2Dd{delayR, 1, delayMixR, 2};
-    AudioConnection patchR2De{delayMixR, 0, finalMixRight, 1};
-
+    AudioConnection patchR2{synthRow2.getOutputRight(), 0, finalMixRight, 1};
     AudioConnection patchR3{synthRow3.getOutputRight(), 0, finalMixRight, 2};
     AudioConnection patchR4{synthRow4.getOutputRight(), 0, finalMixRight, 3};
 

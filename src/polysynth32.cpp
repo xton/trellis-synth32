@@ -119,18 +119,6 @@ void Polysynth32::begin()
     synthRow3.begin();
     synthRow4.begin();
 
-    // delay
-    delayL.delay(0, 110);
-    delayL.delay(1, 220);
-    delayR.delay(0, 220);
-    delayR.delay(1, 660);
-    delayMixL.gain(0, 0.64);
-    delayMixL.gain(1, 0.36);
-    delayMixL.gain(2, 0.36);
-    delayMixR.gain(0, 0.36);
-    delayMixR.gain(1, 0.64);
-    delayMixR.gain(2, 0.36);
-
     // Set up limiters with fast attack, medium release
     // Start limiting at -12 dB
     // 10ms attack
