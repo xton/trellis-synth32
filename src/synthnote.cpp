@@ -22,8 +22,8 @@ void SynthNote::begin()
     env.release(300.0);
 
     // Start with silent oscillators
-    waveform1.begin(0.0, 440, WAVEFORM_SAWTOOTH);
-    waveform2.begin(0.0, 440 * (1.0 + detune), WAVEFORM_SAWTOOTH);
+    waveform1.begin(0.0, baseFreq, WAVEFORM_SAWTOOTH);
+    waveform2.begin(0.0, baseFreq * (1.0 + detune), WAVEFORM_SAWTOOTH);
 }
 
 void SynthNote::setFrequency(float freq)
@@ -45,8 +45,8 @@ void SynthNote::noteOn()
 void SynthNote::noteOff()
 {
     AudioNoInterrupts();
+    env.noteOff();
     waveform1.amplitude(0);
     waveform2.amplitude(0);
-    env.noteOff();
     AudioInterrupts();
 }
