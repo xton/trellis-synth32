@@ -135,7 +135,13 @@ void loop()
     lastPrint = now;
   }
 
-  trellis.tick();
+  // The trellis library has a nasty hack that attempts to
+  // suppress events from all 4 buttons on a column being hit at once.
+  // This is something the elastometer is prone to doing accidentally and it can be kind of annoying...
+  // however, it's very rare and my users actually want to hold down a whole row at once. Additionally
+  // the implementation is poor and leaves stuck keys.
+  // trellis.tick();
+  static_cast<Adafruit_Keypad &>(trellis).tick();
 
   while (trellis.available())
   {
@@ -143,20 +149,14 @@ void loop()
     int keyindex = e.bit.KEY;
     if (e.bit.EVENT == KEY_JUST_PRESSED)
     {
-      Serial.printf("event: key pressed: %d\n", keyindex);
       // trellis.setPixelColor(keyindex, 0xFFFFFF); // plain white
       trellis.setPixelColor(keyindex, Wheel(keyindex * 255 / 32)); // rainbow!
       noteOn(keyindex);
     }
     else if (e.bit.EVENT == KEY_JUST_RELEASED)
     {
-      Serial.printf("event: key released: %d\n", keyindex);
       noteOff(keyindex);
       trellis.setPixelColor(keyindex, 0);
-    }
-    else
-    {
-      Serial.printf("event: other: %d (%d)\n", keyindex, e.bit.EVENT);
     }
   }
   delay(10);
