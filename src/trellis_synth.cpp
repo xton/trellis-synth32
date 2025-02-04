@@ -113,9 +113,13 @@ void noteOff(int num)
 
 void loop()
 {
-  // Monitor audio system resources
-  if (millis() % 5000 == 0)
-  { // Print every 5 seconds
+
+  static uint32_t lastPrint = 0;
+  uint32_t now = millis();
+
+  // Monitor audio system resources every 5 seconds
+  if (now - lastPrint >= 5000)
+  {
     Serial.print("Memory Usage: ");
     Serial.print(AudioMemoryUsage());
     Serial.print(" blocks (max: ");
@@ -127,6 +131,8 @@ void loop()
     Serial.print("% (max: ");
     Serial.print(AudioProcessorUsageMax());
     Serial.println("%)");
+
+    lastPrint = now;
   }
 
   trellis.tick();
@@ -137,14 +143,20 @@ void loop()
     int keyindex = e.bit.KEY;
     if (e.bit.EVENT == KEY_JUST_PRESSED)
     {
+      Serial.printf("event: key pressed: %d\n", keyindex);
       // trellis.setPixelColor(keyindex, 0xFFFFFF); // plain white
       trellis.setPixelColor(keyindex, Wheel(keyindex * 255 / 32)); // rainbow!
       noteOn(keyindex);
     }
     else if (e.bit.EVENT == KEY_JUST_RELEASED)
     {
+      Serial.printf("event: key released: %d\n", keyindex);
       noteOff(keyindex);
       trellis.setPixelColor(keyindex, 0);
+    }
+    else
+    {
+      Serial.printf("event: other: %d (%d)\n", keyindex, e.bit.EVENT);
     }
   }
   delay(10);
