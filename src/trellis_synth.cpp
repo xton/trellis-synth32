@@ -6,6 +6,25 @@
 #include <Adafruit_seesaw.h>
 #include "polysynth32.h"
 
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <Fonts/FreeSansBold12pt7b.h>
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define SS_SWITCH 24     // this is the pin on the encoder connected to switch
+
+// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+// The pins for I2C are defined by the Wire-library.
+// On an arduino UNO:       A4(SDA), A5(SCL)
+// On an arduino MEGA 2560: 20(SDA), 21(SCL)
+// On an arduino LEONARDO:   2(SDA),  3(SCL), ...
+#define OLED_RESET -1       // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3C // ours is this (shrug)
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 #ifdef __SAMD51__
 // Define strong symbols for these handlers to avoid them being clobbered by the weak symbols in coretex_handlers.c
 extern "C" void DMAC_0_Handler();
@@ -51,10 +70,29 @@ void setup()
   Serial.println("Setting up encoder 1");
   while (!encoder1.begin(ENCODER1_ADDR))
     delay(10);
+  encoder1.pinMode(SS_SWITCH, INPUT_PULLUP);
 
   Serial.println("Setting up encoder 2");
   while (!encoder2.begin(ENCODER2_ADDR))
     delay(10);
+  encoder2.pinMode(SS_SWITCH, INPUT_PULLUP);
+
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
+  {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;)
+    {
+      // Don't proceed, loop forever
+      delay(1000);
+      Serial.println(F("SSD1306 allocation failed"));
+    }
+  }
+
+  // Show initial display buffer contents on the screen --
+  // the library initializes this with an Adafruit splash screen.
+  display.display();
+  delay(2000);
 
   Serial.println("setup done");
 }
@@ -73,6 +111,8 @@ void loop()
 {
 
   static uint32_t lastPrint = 0;
+  static bool button1State = true;
+  static bool button2State = true;
   uint32_t now = millis();
 
   // Monitor audio system resources every 5 seconds
@@ -128,12 +168,33 @@ void loop()
   if (d1 != 0)
   {
     Serial.printf("Enc1. Delta: %d\n", d1);
+
+    // display position on screen
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setFont(&FreeSansBold12pt7b);
+    display.setTextColor(SSD1306_WHITE); // Draw white text
+    display.setCursor(0, 32);
+    display.printf("Enc1: %d\n", encoder1.getEncoderPosition());
+    display.display();
+  }
+  bool b1 = encoder1.digitalRead(SS_SWITCH);
+  if (b1 != button1State)
+  {
+    Serial.printf("button 1 is now: %d\n", (int)b1);
+    button1State = b1;
   }
 
   uint32_t d2 = encoder2.getEncoderDelta();
   if (d2 != 0)
   {
     Serial.printf("Enc2. Delta: %d\n", d2);
+  }
+  bool b2 = encoder2.digitalRead(SS_SWITCH);
+  if (b2 != button2State)
+  {
+    Serial.printf("button 2 is now: %d\n", (int)b2);
+    button2State = b2;
   }
 
   delay(10);
