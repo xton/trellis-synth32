@@ -18,36 +18,6 @@ uint32_t Wheel(byte WheelPos);
 
 Polysynth32 synth;
 
-// short wave_type[4] = {
-//     WAVEFORM_SAWTOOTH_REVERSE,
-//     WAVEFORM_SQUARE,
-//     WAVEFORM_SAWTOOTH,
-//     WAVEFORM_SQUARE,
-// };
-
-// // C major pentatonic: C, D, E, G, A (then C, D, E again up octave)
-// float cmaj_pent_low[8] = {
-//     130.81, // C
-//     146.83, // D
-//     164.81, // E
-//     196.00, // G
-//     220.00, // A
-//     261.63, // C (8va)
-//     293.66, // D (8va)
-//     329.63  // E (8va)
-// };
-
-// float cmaj_pent_high[8] = {
-//     261.63, // C
-//     293.66, // D
-//     329.63, // E
-//     392.00, // G
-//     440.00, // A
-//     523.25, // C (8va)
-//     587.33, // D (8va)
-//     659.26  // E (8va)
-// };
-
 AudioOutputAnalogStereo audioOut;
 
 AudioConnection patchCord8(synth.getOutputLeft(), 0, audioOut, 0);
@@ -63,7 +33,7 @@ void setup()
   trellis.begin();
   trellis.setBrightness(255);
 
-  AudioMemory(180); // Increased for 8-voice polyphony
+  AudioMemory(320); // Increased mainly to support the delay effects
 
   // Initialize processor and memory measurements
   AudioProcessorUsageMaxReset();
@@ -71,28 +41,11 @@ void setup()
 
   synth.begin();
 
-  // // reduce the gain on some channels, so half of the channels
-  // // are "positioned" to the left, half to the right, but all
-  // // are heard at least partially on both ears
-  // mixerLeft.gain(1, 0.36);
-  // mixerLeft.gain(3, 0.36);
-  // mixerRight.gain(0, 0.36);
-  // mixerRight.gain(2, 0.36);
-
-  // // set up delay effect
-  // delay1.delay(0, 110);
-  // delay1.delay(1, 220);
-  // delay1.delay(2, 660);
-
   Serial.println("setup done");
 }
 
 void noteOn(int num)
 {
-  // int voice = num / 8;
-  // float *scale = (voice < 2) ? cmaj_pent_low : cmaj_pent_high;
-  // float freq = scale[num % 8];
-  // synth.noteOn(num, freq, wave_type[voice % 4]);
   synth.noteOn(num);
 }
 

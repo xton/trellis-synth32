@@ -15,8 +15,8 @@ private:
     // Note: GuitarNote and DrumNote still need to be implemented
     SynthRow<GuitarNote> synthRow1;      // Row 0: Guitar sounds
     DelayRow<SimpleSynthNote> synthRow2; // Row 1: Synth sounds
-    SynthRow<SynthNote> synthRow3;       // Row 2: More synth sounds for now
-    SynthRow<SynthNote> synthRow4;       // Row 3: More synth sounds for now
+    SynthRow<SimpleSynthNote> synthRow3; // Row 2: More synth sounds for now
+    DelayRow<SimpleSynthNote> synthRow4; // Row 3: More synth sounds for now
 
     // Final mixing and limiting stage
     AudioMixer4 finalMixLeft;
