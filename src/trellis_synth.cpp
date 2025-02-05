@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Audio.h>
 #include <Adafruit_NeoTrellisM4.h>
+#include <Adafruit_seesaw.h>
 #include "polysynth32.h"
 
 #ifdef __SAMD51__
@@ -25,6 +26,12 @@ AudioConnection patchCord9(synth.getOutputRight(), 0, audioOut, 1);
 
 Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 
+#define ENCODER1_ADDR 0x36
+#define ENCODER2_ADDR 0x37
+
+Adafruit_seesaw encoder1;
+Adafruit_seesaw encoder2;
+
 void setup()
 {
   Serial.begin(115200);
@@ -40,6 +47,14 @@ void setup()
   AudioMemoryUsageMaxReset();
 
   synth.begin();
+
+  Serial.println("Setting up encoder 1");
+  while (!encoder1.begin(ENCODER1_ADDR))
+    delay(10);
+
+  Serial.println("Setting up encoder 2");
+  while (!encoder2.begin(ENCODER2_ADDR))
+    delay(10);
 
   Serial.println("setup done");
 }
@@ -75,6 +90,13 @@ void loop()
     Serial.print(AudioProcessorUsageMax());
     Serial.println("%)");
 
+    // uint32_t version1 = ((encoder1.getVersion() >> 16) & 0xFFFF);
+    // uint32_t version2 = ((encoder2.getVersion() >> 16) & 0xFFFF);
+
+    // Serial.printf("Versions: %d, %d\n", version1, version2);
+    // Serial.printf("Deltas: %d %d\n", encoder1.getEncoderDelta(), encoder2.getEncoderDelta());
+    // Serial.printf("Positions: %d %d\n", encoder1.getEncoderPosition(), encoder2.getEncoderPosition());
+
     lastPrint = now;
   }
 
@@ -102,6 +124,18 @@ void loop()
       trellis.setPixelColor(keyindex, 0);
     }
   }
+  uint32_t d1 = encoder1.getEncoderDelta();
+  if (d1 != 0)
+  {
+    Serial.printf("Enc1. Delta: %d\n", d1);
+  }
+
+  uint32_t d2 = encoder2.getEncoderDelta();
+  if (d2 != 0)
+  {
+    Serial.printf("Enc2. Delta: %d\n", d2);
+  }
+
   delay(10);
 }
 
