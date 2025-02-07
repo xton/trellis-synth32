@@ -3,10 +3,27 @@
 template <typename T>
 SynthRow<T>::SynthRow()
     // First layer: connect notes 0-3 to mixLeft1/mixRight1, notes 4-7 to mixLeft2/mixRight2
-    : patchL1_0(notes[0].getOutputLeft(), 0, mixLeft1, 0), patchL1_1(notes[1].getOutputLeft(), 0, mixLeft1, 1), patchL1_2(notes[2].getOutputLeft(), 0, mixLeft1, 2), patchL1_3(notes[3].getOutputLeft(), 0, mixLeft1, 3), patchL2_0(notes[4].getOutputLeft(), 0, mixLeft2, 0), patchL2_1(notes[5].getOutputLeft(), 0, mixLeft2, 1), patchL2_2(notes[6].getOutputLeft(), 0, mixLeft2, 2), patchL2_3(notes[7].getOutputLeft(), 0, mixLeft2, 3), patchR1_0(notes[0].getOutputRight(), 0, mixRight1, 0), patchR1_1(notes[1].getOutputRight(), 0, mixRight1, 1), patchR1_2(notes[2].getOutputRight(), 0, mixRight1, 2), patchR1_3(notes[3].getOutputRight(), 0, mixRight1, 3), patchR2_0(notes[4].getOutputRight(), 0, mixRight2, 0), patchR2_1(notes[5].getOutputRight(), 0, mixRight2, 1), patchR2_2(notes[6].getOutputRight(), 0, mixRight2, 2), patchR2_3(notes[7].getOutputRight(), 0, mixRight2, 3)
+    : patchL1_0(notes[0].getOutputLeft(), 0, mixLeft1, 0),
+      patchL1_1(notes[1].getOutputLeft(), 0, mixLeft1, 1),
+      patchL1_2(notes[2].getOutputLeft(), 0, mixLeft1, 2),
+      patchL1_3(notes[3].getOutputLeft(), 0, mixLeft1, 3),
+      patchL2_0(notes[4].getOutputLeft(), 0, mixLeft2, 0),
+      patchL2_1(notes[5].getOutputLeft(), 0, mixLeft2, 1),
+      patchL2_2(notes[6].getOutputLeft(), 0, mixLeft2, 2),
+      patchL2_3(notes[7].getOutputLeft(), 0, mixLeft2, 3),
+      patchR1_0(notes[0].getOutputRight(), 0, mixRight1, 0),
+      patchR1_1(notes[1].getOutputRight(), 0, mixRight1, 1),
+      patchR1_2(notes[2].getOutputRight(), 0, mixRight1, 2),
+      patchR1_3(notes[3].getOutputRight(), 0, mixRight1, 3),
+      patchR2_0(notes[4].getOutputRight(), 0, mixRight2, 0),
+      patchR2_1(notes[5].getOutputRight(), 0, mixRight2, 1),
+      patchR2_2(notes[6].getOutputRight(), 0, mixRight2, 2),
+      patchR2_3(notes[7].getOutputRight(), 0, mixRight2, 3),
       // Second layer: connect first layer mixers to final mixers
-      ,
-      patchLF1(mixLeft1, 0, finalLeft, 0), patchLF2(mixLeft2, 0, finalLeft, 1), patchRF1(mixRight1, 0, finalRight, 0), patchRF2(mixRight2, 0, finalRight, 1)
+      patchLF1(mixLeft1, 0, finalLeft, 0),
+      patchLF2(mixLeft2, 0, finalLeft, 1),
+      patchRF1(mixRight1, 0, finalRight, 0),
+      patchRF2(mixRight2, 0, finalRight, 1)
 {
     // First layer mixers: 1.0 gain for each input
     // (will be divided among active voices)
