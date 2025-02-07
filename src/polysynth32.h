@@ -26,7 +26,6 @@ private:
 
     // Audio connections for final mix stage
     AudioConnection patchL1{synthRow1.getOutputLeft(), 0, finalMixLeft, 0};
-
     AudioConnection patchL2{synthRow2.getOutputLeft(), 0, finalMixLeft, 1};
     AudioConnection patchL3{synthRow3.getOutputLeft(), 0, finalMixLeft, 2};
     AudioConnection patchL4{synthRow4.getOutputLeft(), 0, finalMixLeft, 3};
@@ -60,4 +59,6 @@ public:
     void noteOff(int noteIndex);
     AudioStream &getOutputLeft() { return limiterLeft; }
     AudioStream &getOutputRight() { return limiterRight; }
+
+    void setGain(float g);
 };

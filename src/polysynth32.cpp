@@ -80,11 +80,16 @@ void SynthRow<T>::setScale(const float *frequencies)
 
 Polysynth32::Polysynth32()
 {
+    setGain(0.7);
+}
+
+void Polysynth32::setGain(float gain)
+{
     // Set mixer gains for final output
     for (int i = 0; i < 4; i++)
     {
-        finalMixLeft.gain(i, 1.0);
-        finalMixRight.gain(i, 1.0);
+        finalMixLeft.gain(i, gain);
+        finalMixRight.gain(i, gain);
     }
 }
 
@@ -118,17 +123,17 @@ void Polysynth32::setupScales()
     {
         scaleRow4[i] = scaleRow1[i] * 8.0;
     }
-}
-
-void Polysynth32::begin()
-{
-    setupScales();
 
     // Set scales for each row
     synthRow1.setScale(scaleRow1);
     synthRow2.setScale(scaleRow2);
     synthRow3.setScale(scaleRow3);
     synthRow4.setScale(scaleRow4);
+}
+
+void Polysynth32::begin()
+{
+    setupScales();
 
     // Initialize synth rows
     synthRow1.begin();
