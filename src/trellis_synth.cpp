@@ -43,6 +43,8 @@ AudioOutputAnalogStereo audioOut;
 
 AudioConnection patchCord8(synth.getOutputLeft(), 0, audioOut, 0);
 AudioConnection patchCord9(synth.getOutputRight(), 0, audioOut, 1);
+float globalGain = 0.7;
+
 void monitorUsage();
 
 Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
@@ -60,18 +62,31 @@ public:
     display.setFont(&FreeSansBold12pt7b);
     display.setTextColor(SSD1306_WHITE); // Draw white text
     display.setCursor(0, 32);
-    display.printf("Enc1: %d\n", getPosition());
+    display.printf("Vol: %d%%\n", (int)(globalGain * 100));
     display.display();
   }
 
   void inc() override
   {
     Serial.println("left up");
+    globalGain += 0.05;
+    if (globalGain > 1.0)
+      globalGain = 1.0;
+
+    synth.setGain(globalGain);
+
     displayLed();
   }
   void decr() override
   {
     Serial.println("left down");
+
+    globalGain -= 0.05;
+    if (globalGain < 0.0)
+      globalGain = 0.0;
+
+    synth.setGain(globalGain);
+
     displayLed();
   }
   void buttonPushed() override { Serial.println("left pdushed"); }
@@ -80,9 +95,80 @@ public:
 class EncoderRight : public EncoderControl
 {
 public:
-  void inc() override { Serial.println("right up"); }
-  void decr() override { Serial.println("right down"); }
-  void buttonPushed() override { Serial.println("right pushed"); }
+  bool state = false;
+  // BitCrusher
+  int current_CrushBits = 16;     // this defaults to passthrough.
+  int current_SampleRate = 44100; // this defaults to passthrough.
+
+  void displayLed()
+  {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setFont(&FreeSansBold12pt7b);
+    display.setTextColor(SSD1306_WHITE); // Draw white text
+    display.setCursor(0, 32);
+    if (state)
+    {
+      display.printf("Bits: %d\n", current_CrushBits);
+    }
+    else
+    {
+      display.printf("Smpls: %d\n", current_SampleRate);
+    }
+    display.display();
+  }
+
+  void inc() override
+  {
+    Serial.println("right up");
+    if (state)
+    {
+      current_CrushBits += 1;
+      if (current_CrushBits > 16)
+        current_CrushBits = 16;
+
+      synth.setCrusherBits(current_CrushBits);
+    }
+    else
+    {
+      current_SampleRate *= 2;
+      if (current_SampleRate > 44100)
+        current_SampleRate = 44100;
+
+      synth.setCrusherSampleRate(current_SampleRate);
+    }
+
+    displayLed();
+  }
+
+  void decr() override
+  {
+    Serial.println("right down");
+    if (state)
+    {
+      current_CrushBits -= 1;
+      if (current_CrushBits < 2)
+        current_CrushBits = 2;
+
+      synth.setCrusherBits(current_CrushBits);
+    }
+    else
+    {
+      current_SampleRate /= 2;
+      if (current_SampleRate < 690)
+        current_SampleRate = 690;
+
+      synth.setCrusherSampleRate(current_SampleRate);
+    }
+
+    displayLed();
+  }
+  void buttonPushed() override
+  {
+    Serial.println("right pushed");
+    state = !state;
+    displayLed();
+  }
 };
 
 EncoderLeft encoder1;
@@ -183,13 +269,6 @@ void monitorUsage()
     Serial.print("% (max: ");
     Serial.print(AudioProcessorUsageMax());
     Serial.println("%)");
-
-    // uint32_t version1 = ((encoder1.getVersion() >> 16) & 0xFFFF);
-    // uint32_t version2 = ((encoder2.getVersion() >> 16) & 0xFFFF);
-
-    // Serial.printf("Versions: %d, %d\n", version1, version2);
-    // Serial.printf("Deltas: %d %d\n", encoder1.getEncoderDelta(), encoder2.getEncoderDelta());
-    // Serial.printf("Positions: %d %d\n", encoder1.getEncoderPosition(), encoder2.getEncoderPosition());
 
     lastPrint = now;
   }

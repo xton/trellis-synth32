@@ -21,8 +21,12 @@ private:
     // Final mixing and limiting stage
     AudioMixer4 finalMixLeft;
     AudioMixer4 finalMixRight;
+    AudioEffectBitcrusher bitcrusherLeft;
+    AudioEffectBitcrusher bitcrusherRight;
     AudioEffectDynamics limiterLeft;
     AudioEffectDynamics limiterRight;
+    AudioMixer4 gainMixerLeft;
+    AudioMixer4 gainMixerRight;
 
     // Audio connections for final mix stage
     AudioConnection patchL1{synthRow1.getOutputLeft(), 0, finalMixLeft, 0};
@@ -35,16 +39,19 @@ private:
     AudioConnection patchR3{synthRow3.getOutputRight(), 0, finalMixRight, 2};
     AudioConnection patchR4{synthRow4.getOutputRight(), 0, finalMixRight, 3};
 
-    // Limiter connections
-    AudioConnection patchLimL{finalMixLeft, 0, limiterLeft, 0};
-    AudioConnection patchLimR{finalMixRight, 0, limiterRight, 0};
+    // filter connections
+    AudioConnection pf0{finalMixLeft, 0, bitcrusherLeft, 0};
+    AudioConnection pf1{finalMixRight, 0, bitcrusherRight, 0};
+    AudioConnection pf2{bitcrusherLeft, 0, gainMixerLeft, 0};
+    AudioConnection pf3{bitcrusherRight, 0, gainMixerRight, 0};
+    AudioConnection pf4{gainMixerLeft, 0, limiterLeft, 0};
+    AudioConnection pf5{gainMixerRight, 0, limiterRight, 0};
+
+    // AudioConnection patchLimL{finalMixLeft, 0, limiterLeft, 0};
+    // AudioConnection patchLimR{finalMixRight, 0, limiterRight, 0};
 
     // Scale configuration
     void setupScales();
-    static constexpr float makeNoteFreq(float baseFreq, int semitones)
-    {
-        return baseFreq * pow(2.0f, semitones / 12.0f);
-    }
 
     // Frequency tables for each row (8 notes per row)
     float scaleRow1[8];
@@ -60,5 +67,21 @@ public:
     AudioStream &getOutputLeft() { return limiterLeft; }
     AudioStream &getOutputRight() { return limiterRight; }
 
-    void setGain(float g);
+    void setCrusherBits(uint8_t b)
+    {
+        bitcrusherRight.bits(b);
+        bitcrusherLeft.bits(b);
+    }
+
+    void setCrusherSampleRate(float r)
+    {
+        bitcrusherLeft.sampleRate(r);
+        bitcrusherRight.sampleRate(r);
+    }
+
+    void setGain(float g)
+    {
+        gainMixerLeft.gain(0, g);
+        gainMixerRight.gain(0, g);
+    }
 };

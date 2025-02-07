@@ -81,16 +81,13 @@ void SynthRow<T>::setScale(const float *frequencies)
 Polysynth32::Polysynth32()
 {
     setGain(0.7);
-}
 
-void Polysynth32::setGain(float gain)
-{
-    // Set mixer gains for final output
-    for (int i = 0; i < 4; i++)
-    {
-        finalMixLeft.gain(i, gain);
-        finalMixRight.gain(i, gain);
-    }
+    // // Set mixer gains for final output
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     finalMixLeft.gain(i, gain);
+    //     finalMixRight.gain(i, gain);
+    // }
 }
 
 void Polysynth32::setupScales()
@@ -140,6 +137,10 @@ void Polysynth32::begin()
     synthRow2.begin();
     synthRow3.begin();
     synthRow4.begin();
+
+    // init the crushers to passthru
+    setCrusherBits(16);
+    setCrusherSampleRate(44100);
 
     // Set up limiters with fast attack, medium release
     // Start limiting at -12 dB
