@@ -4,6 +4,8 @@
 #include "synthnote.h"
 #include "guitarnote.h"
 
+// TODO: remove this. not used.
+
 #define NOTE_COUNT 3
 
 class MultiNote : public INote

@@ -54,7 +54,11 @@ Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 
 class EncoderLeft : public EncoderControl
 {
+
 public:
+  bool state = false;
+  uint8_t voiceNumber = 0;
+
   void displayLed()
   {
     display.clearDisplay();
@@ -62,30 +66,54 @@ public:
     display.setFont(&FreeSansBold12pt7b);
     display.setTextColor(SSD1306_WHITE); // Draw white text
     display.setCursor(0, 32);
-    display.printf("Vol: %d%%\n", (int)(globalGain * 100));
+    if (state)
+    {
+      display.printf("Voice: %d\n", voiceNumber);
+    }
+    else
+    {
+      display.printf("Vol: %d%%\n", (int)(globalGain * 100));
+    }
     display.display();
   }
 
   void inc() override
   {
     Serial.println("left up");
-    globalGain += 0.05;
-    if (globalGain > 1.0)
-      globalGain = 1.0;
+    if (state)
+    {
+      voiceNumber += 1;
+      voiceNumber = (voiceNumber % MultiRow::VOICE_COUNT);
+      synth.selectVoice(voiceNumber);
+    }
+    else
+    {
+      globalGain += 0.05;
+      if (globalGain > 1.0)
+        globalGain = 1.0;
 
-    synth.setGain(globalGain);
-
+      synth.setGain(globalGain);
+    }
     displayLed();
   }
   void decr() override
   {
     Serial.println("left down");
 
-    globalGain -= 0.05;
-    if (globalGain < 0.0)
-      globalGain = 0.0;
+    if (state)
+    {
+      voiceNumber -= 1;
+      voiceNumber = (voiceNumber % MultiRow::VOICE_COUNT);
+      synth.selectVoice(voiceNumber);
+    }
+    else
+    {
+      globalGain -= 0.05;
+      if (globalGain < 0.0)
+        globalGain = 0.0;
 
-    synth.setGain(globalGain);
+      synth.setGain(globalGain);
+    }
 
     displayLed();
   }

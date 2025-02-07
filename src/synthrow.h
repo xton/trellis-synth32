@@ -2,14 +2,34 @@
 #include <Audio.h>
 #include "inote.h"
 
+class ISynthRow
+{
+public:
+    static const int NOTES_PER_ROW = 8;
+    virtual ~ISynthRow() = default;
+    virtual void begin() = 0;
+    virtual void noteOn(int index) = 0;
+    virtual void noteOff(int index) = 0;
+    virtual AudioStream &getOutputLeft() = 0;
+    virtual AudioStream &getOutputRight() = 0;
+    virtual void setScale(const float *frequencies) = 0;
+
+protected:
+    // Protected constructor prevents instantiation of interface
+    ISynthRow() = default;
+
+    // Prevent copying of interface
+    ISynthRow(const ISynthRow &) = delete;
+    ISynthRow &operator=(const ISynthRow &) = delete;
+};
+
 // Each row manages 8 notes of the same type
 template <typename T>
-class SynthRow
+class SynthRow : public ISynthRow
 {
     // static_assert(std::is_base_of<INote, T>::value, "T must implement INote interface");
 
 private:
-    static const int NOTES_PER_ROW = 8;
     T notes[NOTES_PER_ROW];
     AudioMixer4 mixLeft1;   // Mixes notes 0-3
     AudioMixer4 mixLeft2;   // Mixes notes 4-7

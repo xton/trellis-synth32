@@ -8,15 +8,21 @@
 #include "simplesynthnote.h"
 #include "synthrow.h"
 #include "delayrow.h"
+#include "multirow.h"
 
 class Polysynth32
 {
+public:
+    static const int ROW_COUNT = 4;
+
 private:
     // Note: GuitarNote and DrumNote still need to be implemented
-    SynthRow<GuitarNote> synthRow1;      // Row 0: Guitar sounds
-    DelayRow<SimpleSynthNote> synthRow2; // Row 1: Synth sounds
-    SynthRow<GuitarNote> synthRow3;      // Row 2: More synth sounds for now
-    DelayRow<SimpleSynthNote> synthRow4; // Row 3: More synth sounds for now
+    MultiRow synthRow1; // Row 0: Guitar sounds
+    MultiRow synthRow2; // Row 1: Synth sounds
+    MultiRow synthRow3; // Row 2: More synth sounds for now
+    MultiRow synthRow4; // Row 3: More synth sounds for now
+
+    MultiRow *rows[4] = {&synthRow1, &synthRow2, &synthRow3, &synthRow4};
 
     // Final mixing and limiting stage
     AudioMixer4 finalMixLeft;
@@ -83,5 +89,11 @@ public:
     {
         gainMixerLeft.gain(0, g);
         gainMixerRight.gain(0, g);
+    }
+
+    void selectVoice(uint8_t idx)
+    {
+        for (int i = 0; i < ROW_COUNT; i++)
+            rows[i]->selectVoice(idx);
     }
 };
