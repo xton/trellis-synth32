@@ -99,5 +99,3 @@ public:
             rows[i]->selectVoice(idx);
     }
 };
-
-// PRINT_SIZE_ERROR(Polysynth32);

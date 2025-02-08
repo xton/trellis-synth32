@@ -1,5 +1,6 @@
 #pragma once
 #include "inote.h"
+#include "debug.h"
 
 class GuitarNote : public INote
 {

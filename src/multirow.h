@@ -3,8 +3,11 @@
 #include "simplesynthnote.h"
 #include "synthnote.h"
 #include "guitarnote.h"
+#include "cheapguitarnote.h"
 #include "delayrow.h"
 #include "inote.h"
+
+#include "debug.h"
 
 class MultiRow
 {
@@ -14,8 +17,8 @@ public:
 private:
     SynthRow<GuitarNote> synthRow0;      // Row 0: Guitar sounds
     SynthRow<SimpleSynthNote> synthRow1; // Row 1: Synth sounds
-    SynthRow<GuitarNote> synthRow2;      // Row 2: More synth sounds for now
-    SynthRow<SimpleSynthNote> synthRow3; // Row 3: More synth sounds for now
+    SynthRow<CheapGuitarNote> synthRow2; // Row 2: More synth sounds for now
+    DelayRow<SimpleSynthNote> synthRow3; // Row 3: More synth sounds for now
 
     ISynthRow *rows[VOICE_COUNT] = {&synthRow0, &synthRow1, &synthRow2, &synthRow3};
     uint8_t idx = 0; // current note idx
