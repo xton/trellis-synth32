@@ -37,12 +37,12 @@ void DMAC_4_Handler(void) { DMAC_0_Handler(); }
 
 uint32_t Wheel(byte WheelPos);
 
-Polysynth32 synth;
+Polysynth32 synthinstance;
 
 AudioOutputAnalogStereo audioOut;
 
-AudioConnection patchCord8(synth.getOutputLeft(), 0, audioOut, 0);
-AudioConnection patchCord9(synth.getOutputRight(), 0, audioOut, 1);
+AudioConnection patchCord8(synthinstance.getOutputLeft(), 0, audioOut, 0);
+AudioConnection patchCord9(synthinstance.getOutputRight(), 0, audioOut, 1);
 float globalGain = 0.7;
 
 void monitorUsage();
@@ -84,7 +84,7 @@ public:
     {
       voiceNumber += 1;
       voiceNumber = (voiceNumber % MultiRow::VOICE_COUNT);
-      synth.selectVoice(voiceNumber);
+      synthinstance.selectVoice(voiceNumber);
     }
     else
     {
@@ -92,7 +92,7 @@ public:
       if (globalGain > 1.0)
         globalGain = 1.0;
 
-      synth.setGain(globalGain);
+      synthinstance.setGain(globalGain);
     }
     displayLed();
   }
@@ -104,7 +104,7 @@ public:
     {
       voiceNumber -= 1;
       voiceNumber = (voiceNumber % MultiRow::VOICE_COUNT);
-      synth.selectVoice(voiceNumber);
+      synthinstance.selectVoice(voiceNumber);
     }
     else
     {
@@ -112,7 +112,7 @@ public:
       if (globalGain < 0.0)
         globalGain = 0.0;
 
-      synth.setGain(globalGain);
+      synthinstance.setGain(globalGain);
     }
 
     displayLed();
@@ -155,7 +155,7 @@ public:
       if (current_CrushBits > 16)
         current_CrushBits = 16;
 
-      synth.setCrusherBits(current_CrushBits);
+      synthinstance.setCrusherBits(current_CrushBits);
     }
     else
     {
@@ -163,7 +163,7 @@ public:
       if (current_SampleRate > 44100)
         current_SampleRate = 44100;
 
-      synth.setCrusherSampleRate(current_SampleRate);
+      synthinstance.setCrusherSampleRate(current_SampleRate);
     }
 
     displayLed();
@@ -178,7 +178,7 @@ public:
       if (current_CrushBits < 2)
         current_CrushBits = 2;
 
-      synth.setCrusherBits(current_CrushBits);
+      synthinstance.setCrusherBits(current_CrushBits);
     }
     else
     {
@@ -186,7 +186,7 @@ public:
       if (current_SampleRate < 690)
         current_SampleRate = 690;
 
-      synth.setCrusherSampleRate(current_SampleRate);
+      synthinstance.setCrusherSampleRate(current_SampleRate);
     }
 
     displayLed();
@@ -210,13 +210,13 @@ void setup()
   trellis.begin();
   trellis.setBrightness(255);
 
-  AudioMemory(320); // Increased mainly to support the delay effects
+  AudioMemory(180); // Increased mainly to support the delay effects
 
   // Initialize processor and memory measurements
   AudioProcessorUsageMaxReset();
   AudioMemoryUsageMaxReset();
 
-  synth.begin();
+  synthinstance.begin();
 
   encoder1.begin(ENCODER1_ADDR);
   encoder2.begin(ENCODER2_ADDR);
@@ -234,12 +234,12 @@ void setup()
 
 void noteOn(int num)
 {
-  synth.noteOn(num);
+  synthinstance.noteOn(num);
 }
 
 void noteOff(int num)
 {
-  synth.noteOff(num);
+  synthinstance.noteOff(num);
 }
 
 void loop()

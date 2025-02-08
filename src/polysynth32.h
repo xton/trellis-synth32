@@ -10,6 +10,8 @@
 #include "delayrow.h"
 #include "multirow.h"
 
+#include "debug.h"
+
 class Polysynth32
 {
 public:
@@ -97,3 +99,5 @@ public:
             rows[i]->selectVoice(idx);
     }
 };
+
+// PRINT_SIZE_ERROR(Polysynth32);
