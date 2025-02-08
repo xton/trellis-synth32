@@ -15,10 +15,15 @@ public:
     static const int VOICE_COUNT = 4;
 
 private:
-    SynthRow<GuitarNote> synthRow0;      // Row 0: Guitar sounds
-    SynthRow<SimpleSynthNote> synthRow1; // Row 1: Synth sounds
-    SynthRow<CheapGuitarNote> synthRow2; // Row 2: More synth sounds for now
-    DelayRow<SimpleSynthNote> synthRow3; // Row 3: More synth sounds for now
+    SynthRow<SimpleSynthNote> synthRow0; // Row 0: Guitar sounds
+    SynthRow<SynthNote> synthRow1;       // Row 1: Synth sounds
+    SynthRow<GuitarNote> synthRow2;      // Row 2: More synth sounds for now
+    SynthRow<SimpleSynthNote> synthRow3; // Row 3: More synth sounds for now
+
+    // SynthRow<GuitarNote> synthRow0;      // Row 0: Guitar sounds
+    // SynthRow<SimpleSynthNote> synthRow1; // Row 1: Synth sounds
+    // SynthRow<CheapGuitarNote> synthRow2; // Row 2: More synth sounds for now
+    // DelayRow<SimpleSynthNote> synthRow3; // Row 3: More synth sounds for now
 
     ISynthRow *rows[VOICE_COUNT] = {&synthRow0, &synthRow1, &synthRow2, &synthRow3};
     uint8_t idx = 0; // current note idx

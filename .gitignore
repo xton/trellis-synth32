@@ -36,3 +36,4 @@
 .vscode/launch.json
 .vscode/ipch
 .DS_Store
+output.map

@@ -117,7 +117,12 @@ public:
 
     displayLed();
   }
-  void buttonPushed() override { Serial.println("left pdushed"); }
+  void buttonPushed() override
+  {
+    Serial.println("left pushed");
+    state = !state;
+    displayLed();
+  }
 };
 
 class EncoderRight : public EncoderControl
@@ -210,16 +215,21 @@ void setup()
   trellis.begin();
   trellis.setBrightness(255);
 
-  AudioMemory(180); // Increased mainly to support the delay effects
+  AudioMemory(240); // Increased mainly to support the delay effects
 
   // Initialize processor and memory measurements
   AudioProcessorUsageMaxReset();
   AudioMemoryUsageMaxReset();
 
+  delay(2000);
+  Serial.println("we start");
   synthinstance.begin();
+  Serial.println("synth started");
 
   encoder1.begin(ENCODER1_ADDR);
+  Serial.println("encoder 1");
   encoder2.begin(ENCODER2_ADDR);
+  Serial.println("encoder 2");
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   while (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
