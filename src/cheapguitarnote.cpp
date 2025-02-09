@@ -1,6 +1,6 @@
 #include "cheapguitarnote.h"
 
-CheapGuitarNote::CheapGuitarNote() : baseFreq(0) {}
+CheapGuitarNote::CheapGuitarNote() : baseFreq(440) {}
 
 void CheapGuitarNote::begin()
 {
@@ -9,15 +9,16 @@ void CheapGuitarNote::begin()
     waveform.amplitude(0.5);
     waveform.frequency(baseFreq);
 
-    // Set up LFO for subtle pitch/filter modulation
-    lfo.begin(WAVEFORM_SINE);
-    lfo.frequency(6.0);  // 6 Hz modulation
-    lfo.amplitude(0.02); // Subtle amount
+    // // Set up LFO for subtle pitch/filter modulation
+    // lfo.begin(WAVEFORM_SINE);
+    // lfo.frequency(6.0);  // 6 Hz modulation
+    // lfo.amplitude(0.02); // Subtle amount
 
     // Configure filter with modulation input
-    filter.frequency(baseFreq * 2);
-    filter.resonance(0.7);
-    filter.octaveControl(2);
+    // filter.frequency(baseFreq * 2);
+    // filter.resonance(0.7);
+    // filter.octaveControl(2);
+    filter.setLowpass(0, 1000, 0.7);
 
     // Set up envelope for pluck shape
     envelope.attack(0);
@@ -31,7 +32,8 @@ void CheapGuitarNote::setFrequency(float freq)
     baseFreq = freq;
     AudioNoInterrupts();
     waveform.frequency(baseFreq);
-    filter.frequency(baseFreq * 2);
+    // filter.frequency(baseFreq * 2);
+    filter.setLowpass(0, freq * 2, 0.7); // Adjust filter with note
     AudioInterrupts();
 }
 
@@ -41,11 +43,11 @@ void CheapGuitarNote::noteOn()
 
     waveform.frequency(baseFreq);
 
-    // Adjust filter based on note frequency
-    filter.frequency(baseFreq * 2);
+    // // Adjust filter based on note frequency
+    // filter.frequency(baseFreq * 2);
 
-    // Increase modulation rate for higher notes
-    lfo.frequency(6.0 + (baseFreq / 440.0) * 2.0);
+    // // Increase modulation rate for higher notes
+    // lfo.frequency(6.0 + (baseFreq / 440.0) * 2.0);
 
     envelope.noteOn();
 

@@ -6,6 +6,7 @@
 #include "cheapguitarnote.h"
 #include "delayrow.h"
 #include "inote.h"
+#include "meow_note.h"
 
 #include "debug.h"
 
@@ -15,10 +16,12 @@ public:
     static const int VOICE_COUNT = 4;
 
 private:
-    SynthRow<SimpleSynthNote> synthRow0; // Row 0: Guitar sounds
-    SynthRow<SynthNote> synthRow1;       // Row 1: Synth sounds
-    SynthRow<GuitarNote> synthRow2;      // Row 2: More synth sounds for now
-    SynthRow<SimpleSynthNote> synthRow3; // Row 3: More synth sounds for now
+    SynthRow<SimpleSynthNote> synthRow0;
+    SynthRow<MeowNote> synthRow1;
+    SynthRow<GuitarNote> synthRow2;
+    SynthRow<CheapGuitarNote> synthRow3;
+
+    // PRINT_SIZE_ERROR(synthRow3);
 
     // SynthRow<GuitarNote> synthRow0;      // Row 0: Guitar sounds
     // SynthRow<SimpleSynthNote> synthRow1; // Row 1: Synth sounds

@@ -215,7 +215,7 @@ void setup()
   trellis.begin();
   trellis.setBrightness(255);
 
-  AudioMemory(240); // Increased mainly to support the delay effects
+  AudioMemory(280); // Increased mainly to support the delay effects
 
   // Initialize processor and memory measurements
   AudioProcessorUsageMaxReset();
