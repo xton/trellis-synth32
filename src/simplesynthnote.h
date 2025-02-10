@@ -16,6 +16,8 @@ public:
     void begin() override;
     void noteOn() override;
     void noteOff() override;
+    void enable() override;
+    void disable() override;
     void setFrequency(float freq) override;
     AudioStream &getOutputLeft() override { return env; }
     AudioStream &getOutputRight() override { return env; }

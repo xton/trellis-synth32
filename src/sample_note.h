@@ -25,6 +25,10 @@ public:
         player.play(buffer, buffer_len);
     }
     void noteOff() { player.stop(); }
+
+    void enable() override {}
+    void disable() override { player.stop(); }
+
     void setFrequency(float freq) override { baseFreq = freq; }
     void setSample(const int16_t *new_buffer, size_t new_buffer_len, float new_referenceFreq)
     {

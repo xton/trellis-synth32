@@ -23,16 +23,21 @@ void SimpleSynthNote::setFrequency(float freq)
 
 void SimpleSynthNote::noteOn()
 {
-    AudioNoInterrupts();
-    wav.amplitude(0.5);
     env.noteOn();
-    AudioInterrupts();
 }
 
 void SimpleSynthNote::noteOff()
 {
-    AudioNoInterrupts();
     env.noteOff();
-    // wav.amplitude(0); // let the envelope stop us since there's some decay here.
-    AudioInterrupts();
+}
+
+void SimpleSynthNote::enable()
+{
+    wav.amplitude(0.5);
+}
+
+void SimpleSynthNote::disable()
+{
+    noteOff();
+    wav.amplitude(0);
 }

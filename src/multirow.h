@@ -57,9 +57,11 @@ public:
         idx = newIdx;
         for (uint8_t i = 0; i < VOICE_COUNT; i++)
         {
-            // stop all running voices (maybe remove)
-            for (uint8_t j = 0; j < ISynthRow::NOTES_PER_ROW; j++)
-                rows[i]->noteOff(j);
+
+            if (i == idx)
+                rows[i]->enable();
+            else
+                rows[i]->disable();
 
             demuxL.gain(i, i == idx ? 1.0 : 0.0);
             demuxR.gain(i, i == idx ? 1.0 : 0.0);

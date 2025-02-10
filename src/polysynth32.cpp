@@ -64,9 +64,21 @@ template <typename T>
 void SynthRow<T>::begin()
 {
     for (int i = 0; i < NOTES_PER_ROW; i++)
-    {
         notes[i].begin();
-    }
+}
+
+template <typename T>
+void SynthRow<T>::enable()
+{
+    for (int i = 0; i < NOTES_PER_ROW; i++)
+        notes[i].enable();
+}
+
+template <typename T>
+void SynthRow<T>::disable()
+{
+    for (int i = 0; i < NOTES_PER_ROW; i++)
+        notes[i].disable();
 }
 
 template <typename T>

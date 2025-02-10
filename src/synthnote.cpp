@@ -35,17 +35,26 @@ void SynthNote::setFrequency(float freq)
 
 void SynthNote::noteOn()
 {
-    AudioNoInterrupts();
-    waveform1.amplitude(0.5);
-    waveform2.amplitude(0.5);
     env.noteOn();
-    AudioInterrupts();
 }
 
 void SynthNote::noteOff()
 {
-    AudioNoInterrupts();
     env.noteOff();
+}
+
+void SynthNote::enable()
+{
+    AudioNoInterrupts();
+    waveform1.amplitude(0.5);
+    waveform2.amplitude(0.5);
+    AudioInterrupts();
+}
+
+void SynthNote::disable()
+{
+    noteOff();
+    AudioNoInterrupts();
     waveform1.amplitude(0);
     waveform2.amplitude(0);
     AudioInterrupts();

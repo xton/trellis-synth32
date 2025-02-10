@@ -19,6 +19,12 @@ public:
     // when note is released to save CPU cycles
     virtual void noteOff() = 0;
 
+    // restore amplitude to 1 (or otherwise enable note to produce data)
+    virtual void enable() = 0;
+
+    // prevent note from using cpu
+    virtual void disable() = 0;
+
     virtual void setFrequency(float freq) = 0;
     virtual AudioStream &getOutputLeft() = 0;
     virtual AudioStream &getOutputRight() = 0;

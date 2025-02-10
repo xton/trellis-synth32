@@ -10,6 +10,8 @@ public:
     virtual void begin() = 0;
     virtual void noteOn(int index) = 0;
     virtual void noteOff(int index) = 0;
+    virtual void disable() = 0;
+    virtual void enable() = 0;
     virtual AudioStream &getOutputLeft() = 0;
     virtual AudioStream &getOutputRight() = 0;
     virtual void setScale(const float *frequencies) = 0;
@@ -65,6 +67,8 @@ private:
 public:
     SynthRow();
     void begin();
+    void enable();
+    void disable();
     void noteOn(int index);
     void noteOff(int index);
     AudioStream &getOutputLeft() { return finalLeft; }
