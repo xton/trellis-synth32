@@ -13,13 +13,17 @@
 class MultiRow
 {
 public:
-    static const int VOICE_COUNT = 4;
+    static const int VOICE_COUNT = 3;
 
 private:
     SynthRow<SimpleSynthNote> synthRow0;
-    SynthRow<MeowNote> synthRow1;
+    // SynthRow<MeowNote> synthRow1;
     SynthRow<GuitarNote> synthRow2;
-    SynthRow<CheapGuitarNote> synthRow3;
+    // SynthRow<CheapGuitarNote> synthRow3;
+    SynthRow<SimpleSynthNote> synthRow3;
+
+    // ISynthRow *rows[VOICE_COUNT] = {&synthRow0, &synthRow1, &synthRow2, &synthRow3};
+    ISynthRow *rows[VOICE_COUNT] = {&synthRow0, &synthRow2, &synthRow3};
 
     // PRINT_SIZE_ERROR(synthRow3);
 
@@ -28,23 +32,22 @@ private:
     // SynthRow<CheapGuitarNote> synthRow2; // Row 2: More synth sounds for now
     // DelayRow<SimpleSynthNote> synthRow3; // Row 3: More synth sounds for now
 
-    ISynthRow *rows[VOICE_COUNT] = {&synthRow0, &synthRow1, &synthRow2, &synthRow3};
     uint8_t idx = 0; // current note idx
 
     AudioMixer4 demuxL;
     AudioMixer4 demuxR;
 
-    AudioConnection p0L{synthRow0.getOutputLeft(), 0, demuxL, 0};
-    AudioConnection p0R{synthRow0.getOutputRight(), 0, demuxR, 0};
+    AudioConnection p0L{rows[0]->getOutputLeft(), 0, demuxL, 0};
+    AudioConnection p0R{rows[0]->getOutputRight(), 0, demuxR, 0};
 
-    AudioConnection p1L{synthRow1.getOutputLeft(), 0, demuxL, 1};
-    AudioConnection p1R{synthRow1.getOutputRight(), 0, demuxR, 1};
+    AudioConnection p1L{rows[1]->getOutputLeft(), 0, demuxL, 1};
+    AudioConnection p1R{rows[1]->getOutputRight(), 0, demuxR, 1};
 
-    AudioConnection p2L{synthRow2.getOutputLeft(), 0, demuxL, 2};
-    AudioConnection p2R{synthRow2.getOutputRight(), 0, demuxR, 2};
+    AudioConnection p2L{rows[2]->getOutputLeft(), 0, demuxL, 2};
+    AudioConnection p2R{rows[2]->getOutputRight(), 0, demuxR, 2};
 
-    AudioConnection p3L{synthRow3.getOutputLeft(), 0, demuxL, 3};
-    AudioConnection p3R{synthRow3.getOutputRight(), 0, demuxR, 3};
+    // AudioConnection p3L{rows[3]->getOutputLeft(), 0, demuxL, 3};
+    // AudioConnection p3R{rows[3]->getOutputRight(), 0, demuxR, 3};
 
 public:
     MultiRow() {}
