@@ -1,9 +1,6 @@
 #include "polysynth32.h"
 
-Polysynth32::Polysynth32()
-{
-    setGain(0.7);
-}
+Polysynth32::Polysynth32() {}
 
 void Polysynth32::setupScales()
 {
@@ -43,6 +40,10 @@ void Polysynth32::begin()
     // Initialize synth rows
     for (int i = 0; i < LAYER_COUNT; i++)
         layers[i]->begin();
+
+    setGain(0.7);
+
+    setDelay(true);
 
     // init the crushers to passthru
     setCrusherBits(16);
