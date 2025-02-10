@@ -26,7 +26,9 @@ protected:
 };
 
 template <typename T>
-    requires std::is_base_of_v<INote, T>
+class Layer;
+
+template <typename T>
 class Row
 {
 public:
@@ -72,7 +74,6 @@ private:
 };
 
 template <typename T>
-    requires std::is_base_of_v<INote, T>
 class Layer : public ILayer
 {
 public:
@@ -81,7 +82,7 @@ public:
     {
         for (size_t j = 0; j < ROW_COUNT; j++)
             for (size_t i = 0; i < NOTES_PER_ROW; i++)
-                operation(&rows[j].notes[i]);
+                operation(rows[j].notes[i]);
     }
 
     void begin()
@@ -114,10 +115,10 @@ public:
     AudioStream &getOutputLeft() { return finalLeft; }
     AudioStream &getOutputRight() { return finalRight; }
 
-    void setScale(const float *frequencies)
+    void setScale(float const *frequencies)
     {
-        for_all_notes([](INote &note)
-                      { note.setFrequency(*frequencies++); });
+        for_all_notes([&frequencies](INote &note)
+                      { note.setFrequency(*(frequencies++)); });
     }
 
 private:

@@ -82,7 +82,7 @@ public:
     Serial.println("left up");
     if (state)
     {
-      if (voiceNumber < MultiRow::VOICE_COUNT - 1)
+      if (voiceNumber < Polysynth32::LAYER_COUNT - 1)
       {
         voiceNumber += 1;
         synthinstance.selectVoice(voiceNumber);
