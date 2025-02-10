@@ -43,7 +43,7 @@ AudioOutputAnalogStereo audioOut;
 
 AudioConnection patchCord8(synthinstance.getOutputLeft(), 0, audioOut, 0);
 AudioConnection patchCord9(synthinstance.getOutputRight(), 0, audioOut, 1);
-float globalGain = 0.7;
+float globalGain = 0.2;
 
 void monitorUsage();
 
@@ -56,7 +56,7 @@ class EncoderLeft : public EncoderControl
 {
 
 public:
-  bool state = false;
+  bool state = true;
   uint8_t voiceNumber = 0;
 
   void displayLed()
@@ -224,6 +224,7 @@ void setup()
   delay(2000);
   Serial.println("we start");
   synthinstance.begin();
+  synthinstance.setGain(globalGain);
   Serial.println("synth started");
 
   encoder1.begin(ENCODER1_ADDR);
