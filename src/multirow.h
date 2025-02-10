@@ -13,24 +13,15 @@
 class MultiRow
 {
 public:
-    static const int VOICE_COUNT = 3;
+    static const int VOICE_COUNT = 4;
 
 private:
     SynthRow<SimpleSynthNote> synthRow0;
-    // SynthRow<MeowNote> synthRow1;
+    SynthRow<MeowNote> synthRow1;
     SynthRow<GuitarNote> synthRow2;
-    // SynthRow<CheapGuitarNote> synthRow3;
-    SynthRow<SimpleSynthNote> synthRow3;
+    SynthRow<CheapGuitarNote> synthRow3;
 
-    // ISynthRow *rows[VOICE_COUNT] = {&synthRow0, &synthRow1, &synthRow2, &synthRow3};
-    ISynthRow *rows[VOICE_COUNT] = {&synthRow0, &synthRow2, &synthRow3};
-
-    // PRINT_SIZE_ERROR(synthRow3);
-
-    // SynthRow<GuitarNote> synthRow0;      // Row 0: Guitar sounds
-    // SynthRow<SimpleSynthNote> synthRow1; // Row 1: Synth sounds
-    // SynthRow<CheapGuitarNote> synthRow2; // Row 2: More synth sounds for now
-    // DelayRow<SimpleSynthNote> synthRow3; // Row 3: More synth sounds for now
+    ISynthRow *rows[VOICE_COUNT] = {&synthRow0, &synthRow1, &synthRow2, &synthRow3};
 
     uint8_t idx = 0; // current note idx
 
@@ -46,8 +37,8 @@ private:
     AudioConnection p2L{rows[2]->getOutputLeft(), 0, demuxL, 2};
     AudioConnection p2R{rows[2]->getOutputRight(), 0, demuxR, 2};
 
-    // AudioConnection p3L{rows[3]->getOutputLeft(), 0, demuxL, 3};
-    // AudioConnection p3R{rows[3]->getOutputRight(), 0, demuxR, 3};
+    AudioConnection p3L{rows[3]->getOutputLeft(), 0, demuxL, 3};
+    AudioConnection p3R{rows[3]->getOutputRight(), 0, demuxR, 3};
 
 public:
     MultiRow() {}
