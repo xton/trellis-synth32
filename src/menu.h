@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
+#include <Fonts/FreeSansBold9pt7b.h>
+
 #include "polysynth32.h"
 
 class ISetting
@@ -38,6 +40,7 @@ class Setting : public ISetting
 {
     using Mutator = V (*)(V oldValue);
     using Publisher = void (*)(Polysynth32 &, V);
+    using IntConverter = int (*)(V);
 
 private:
     const char *fmt;
@@ -51,6 +54,10 @@ private:
     Publisher publisher;
 
 public:
+    IntConverter intConverter = NULL;
+
+    void setIntConverter(IntConverter f) { intConverter = f; }
+
     Setting(const char *fmt_,
             V value_,
             V minValue_,
@@ -64,7 +71,9 @@ public:
           maxValue(maxValue_),
           incrementor(incrementor_),
           decrementor(decrementor_),
-          publisher(publisher_) {}
+          publisher(publisher_)
+    {
+    }
 
     void increment(Polysynth32 &synth)
     {
@@ -87,7 +96,14 @@ public:
     // a preconfigured cursor and text style
     void display(Adafruit_GFX &d)
     {
-        d.printf(fmt, value);
+        if (intConverter)
+        {
+            d.printf(fmt, intConverter(value));
+        }
+        else
+        {
+            d.printf(fmt, value);
+        }
     }
 };
 
@@ -115,11 +131,13 @@ public:
     {
         gfx.clearDisplay();
         gfx.setTextSize(1);
-        gfx.setFont(&FreeSansBold12pt7b);
+        gfx.setFont(&FreeSansBold9pt7b);
         gfx.setTextColor(SSD1306_WHITE); // Draw white text
-        gfx.setCursor(0, 32);
+        gfx.setCursor(0, 21);
+        gfx.print("< ");
         slides[currentSlide].left.display(gfx);
-        gfx.setCursor(0, 64);
+        gfx.setCursor(0, 50);
+        gfx.print("> ");
         slides[currentSlide].right.display(gfx);
         gfx.display();
     }

@@ -11,7 +11,6 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <Fonts/FreeSansBold12pt7b.h>
 
 #include "menu.h"
 
@@ -68,7 +67,7 @@ auto volumeSetting =
             PUBLISH_METHOD(setGain, float));
 
 auto voiceSetting =
-    Setting("Voice: %d", 0, 0, Polysynth32::LAYER_COUNT,
+    Setting("Voice: %d", 0, 0, Polysynth32::LAYER_COUNT - 1,
             SIMPLE_LAMBDA(int i, i + 1),
             SIMPLE_LAMBDA(int i, i - 1),
             PUBLISH_METHOD(selectVoice, int));
@@ -80,12 +79,12 @@ auto crusherBitsSetting =
             PUBLISH_METHOD(setCrusherBits, int));
 
 auto crusherSampleRateSetting =
-    Setting("Smpls: %d", 44100, 690, 44100,
+    Setting("SR: %d", 44100, 690, 44100,
             SIMPLE_LAMBDA(int i, i * 2),
             SIMPLE_LAMBDA(int i, i / 2),
             PUBLISH_METHOD(setCrusherSampleRate, int));
 
-auto delaySetting = Setting("Delay: %d", false, false, true,
+auto delaySetting = Setting("Delay: %d", true, false, true,
                             SIMPLE_LAMBDA(bool b, !b),
                             SIMPLE_LAMBDA(bool b, !b),
                             PUBLISH_METHOD(setDelay, bool));
@@ -116,6 +115,8 @@ EncoderRight encoder2;
 
 void setup()
 {
+  volumeSetting.setIntConverter(SIMPLE_LAMBDA(float f, (int)(f * 100)));
+
   Serial.begin(115200);
   // while (!Serial);
 
@@ -128,16 +129,16 @@ void setup()
   AudioProcessorUsageMaxReset();
   AudioMemoryUsageMaxReset();
 
-  delay(2000);
-  Serial.println("we start");
+  // delay(2000);
+  // Serial.println("we start");
   synthinstance.begin();
   synthinstance.setGain(globalGain);
-  Serial.println("synth started");
+  // Serial.println("synth started");
 
   encoder1.begin(ENCODER1_ADDR);
-  Serial.println("encoder 1");
+  // Serial.println("encoder 1");
   encoder2.begin(ENCODER2_ADDR);
-  Serial.println("encoder 2");
+  // Serial.println("encoder 2");
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   while (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
@@ -146,6 +147,7 @@ void setup()
     Serial.println("SSD1306 allocation failed");
   }
   display.setRotation(2);
+  menu.display();
 
   Serial.println("setup done");
 }

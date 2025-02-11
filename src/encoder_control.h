@@ -30,16 +30,12 @@ public:
     // call these
     void begin(uint8_t addr)
     {
-        Serial.printf("trace encoder %d\n", __LINE__);
         while (!encoder.begin(addr))
         {
-            Serial.printf("trace encoder %d\n", __LINE__);
             Serial.printf("allocating encoder at address %d failed!\n", addr);
             delay(100);
         }
-        Serial.printf("trace encoder %d\n", __LINE__);
         encoder.pinMode(SS_SWITCH, INPUT_PULLUP);
-        Serial.printf("trace encoder %d\n", __LINE__);
     }
 
     void loop()
@@ -55,7 +51,7 @@ public:
             decr();
             d++;
         }
-        bool b = encoder.digitalRead(SS_SWITCH);
+        bool b = !encoder.digitalRead(SS_SWITCH);
         if (b != buttonState && b)
         {
             buttonPushed();
