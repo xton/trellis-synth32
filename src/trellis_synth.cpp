@@ -131,10 +131,10 @@ public:
   }
 };
 
-auto demo = Setting<int>("a thing: %d", 0, 0, 3, [](int i)
-                         { return i + 1; }, [](int i)
-                         { return i - 1; }, [](Polysynth32 &s, int i)
-                         { s.selectVoice(i); });
+auto demo = Setting("a thing: %d", 0, 0, 3,
+                    SIMPLE_LAMBDA(int i, i + 1),
+                    SIMPLE_LAMBDA(int i, i - 1),
+                    PUBLISH_METHOD(selectVoice));
 
 auto demo2 = Menu(Slide(demo, demo));
 

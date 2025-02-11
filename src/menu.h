@@ -106,3 +106,6 @@ public:
 // Deduction guide
 template <typename... Args>
 Menu(Args...) -> Menu<sizeof...(Args), Args...>;
+
+#define SIMPLE_LAMBDA(decl, expr) (+[](decl) { return expr; })
+#define PUBLISH_METHOD(meth) (+[](Polysynth32 &s, int i) { return s.meth(i); })
