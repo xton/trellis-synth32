@@ -53,37 +53,43 @@ Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 #define ENCODER1_ADDR 0x36
 #define ENCODER2_ADDR 0x37
 
+// effects and postprocessing
+GainFilter gainFilter;
+DelayFilter delayFilter;
+BitCrusherFilter bitCrusherFilter;
+LimiterFilter limiterFilter;
+
 auto volumeSetting =
     Setting("Vol: %d%%", 0.2f, 0.0f, 1.0f,
             SIMPLE_LAMBDA(float f, f + 0.05f),
             SIMPLE_LAMBDA(float f, f - 0.05f),
-            PUBLISH_METHOD(gain.gain, float),
+            PUBLISH_METHOD(gainFilter.gain, float),
             SIMPLE_LAMBDA(float f, (int)(f * 100)));
 
 auto voiceSetting =
     Setting("Voice: %d", 0, 0, Polysynth32::LAYER_COUNT - 1,
             SIMPLE_LAMBDA(int i, i + 1),
             SIMPLE_LAMBDA(int i, i - 1),
-            PUBLISH_METHOD(selectVoice, int));
+            PUBLISH_METHOD(synthinstance.selectVoice, int));
 
 auto crusherBitsSetting =
     Setting("Bits: %d", 16, 2, 16,
             SIMPLE_LAMBDA(int i, i + 1),
             SIMPLE_LAMBDA(int i, i - 1),
-            PUBLISH_METHOD(bitCrusher.bits, int));
+            PUBLISH_METHOD(bitCrusherFilter.bits, int));
 
 auto crusherSampleRateSetting =
     Setting("SR: %d", 44100, 690, 44100,
             SIMPLE_LAMBDA(int i, i * 2),
             SIMPLE_LAMBDA(int i, i / 2),
-            PUBLISH_METHOD(bitCrusher.sampleRate, int));
+            PUBLISH_METHOD(bitCrusherFilter.sampleRate, int));
 
 auto delaySetting = Setting("Delay: %d", true, false, true,
                             SIMPLE_LAMBDA(bool b, !b),
                             SIMPLE_LAMBDA(bool b, !b),
-                            PUBLISH_METHOD(delay.setActive, bool));
+                            PUBLISH_METHOD(delayFilter.setActive, bool));
 
-auto menu = Menu(synthinstance, display,
+auto menu = Menu(display,
                  Slide(volumeSetting, voiceSetting),
                  Slide(crusherBitsSetting, crusherSampleRateSetting),
                  Slide(delaySetting, delaySetting));
@@ -125,7 +131,13 @@ void setup()
   // delay(2000);
   // Serial.println("we start");
   synthinstance.begin();
-  synthinstance.setGain(globalGain);
+
+  // setup all filters
+  synthinstance.pushFilter(gainFilter);
+  synthinstance.pushFilter(delayFilter);
+  synthinstance.pushFilter(bitCrusherFilter);
+  synthinstance.pushFilter(limiterFilter);
+
   // Serial.println("synth started");
 
   encoder1.begin(ENCODER1_ADDR);
@@ -140,7 +152,8 @@ void setup()
     Serial.println("SSD1306 allocation failed");
   }
   display.setRotation(2);
-  menu.display();
+
+  menu.begin();
 
   Serial.println("setup done");
 }

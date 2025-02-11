@@ -41,21 +41,21 @@ void Polysynth32::begin()
     for (int i = 0; i < LAYER_COUNT; i++)
         layers[i]->begin();
 
-    setGain(0.7);
+    // setGain(0.7);
 
-    setDelay(true);
+    // setDelay(true);
 
-    // init the crushers to passthru
-    setCrusherBits(16);
-    setCrusherSampleRate(44100);
+    // // init the crushers to passthru
+    // setCrusherBits(16);
+    // setCrusherSampleRate(44100);
 
-    // Set up limiters with fast attack, medium release
-    // Start limiting at -12 dB
-    // 10ms attack
-    // 60ms release
-    // 4:1 compression ratio
-    limiterLeft.compression(-12.0, 0.01, 0.06, 4.0);
-    limiterRight.compression(-12.0, 0.01, 0.06, 4.0);
+    // // Set up limiters with fast attack, medium release
+    // // Start limiting at -12 dB
+    // // 10ms attack
+    // // 60ms release
+    // // 4:1 compression ratio
+    // limiterLeft.compression(-12.0, 0.01, 0.06, 4.0);
+    // limiterRight.compression(-12.0, 0.01, 0.06, 4.0);
 
     selectVoice(currentLayer);
 }

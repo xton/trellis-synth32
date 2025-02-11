@@ -42,20 +42,26 @@ private:
     AudioConnection patchR3{layer3.getOutputRight(), 0, finalMixRight, 2};
     AudioConnection patchR4{layer4.getOutputRight(), 0, finalMixRight, 3};
 
+    // current left and right outputs
+    AudioStream *outputLeft = &finalMixLeft;
+    AudioStream *outputRight = &finalMixRight;
+
 public:
     Polysynth32();
     void begin();
     void noteOn(int noteIndex) { layers[currentLayer]->noteOn(noteIndex); }
     void noteOff(int noteIndex) { layers[currentLayer]->noteOff(noteIndex); }
 
-    // effects and postprocessing
-    GainFilter gain{finalMixLeft, finalMixRight};
-    DelayFilter delay{&gain};
-    BitCrusherFilter bitCrusher{&delay};
-    LimiterFilter limiter{&bitCrusher};
+    void pushFilter(Filter &filter)
+    {
+        filter.connect(*outputLeft, *outputRight);
+        filter.begin();
+        outputLeft = &filter.outL();
+        outputRight = &filter.outR();
+    }
 
-    AudioStream &getOutputLeft() { return limiter.outL(); }
-    AudioStream &getOutputRight() { return limiter.outR(); }
+    AudioStream &getOutputLeft() { return *outputLeft; }
+    AudioStream &getOutputRight() { return *outputRight; }
     void setupScales();
     void selectVoice(uint8_t idx);
 };

@@ -13,24 +13,11 @@ private:
     AudioConnection *patchLeft = NULL;
     AudioConnection *patchRight = NULL;
 
-    // stored by constructor for use the finalizer
-    AudioStream *parentLeft;
-    AudioStream *parentRight;
-
 public:
-    // first layer on filter stack must use this
-    Filter(AudioStream &l, AudioStream &r) : parentLeft(&l), parentRight(&r) {}
-
-    // subsequent layers use this
-    Filter(Filter *parent) : Filter(parent->outL(), parent->outR()) {}
-
-    void connect()
+    void connect(AudioStream &left_, AudioStream &right_)
     {
-        if ((!patchLeft || !patchRight))
-        {
-            patchLeft = new (plbuf) AudioConnection(*parentLeft, inL());
-            patchRight = new (prbuf) AudioConnection(*parentRight, inR());
-        }
+        patchLeft = new (plbuf) AudioConnection(left_, inL());
+        patchRight = new (prbuf) AudioConnection(right_, inR());
     }
 
     ~Filter()
@@ -41,7 +28,7 @@ public:
             patchRight->~AudioConnection();
     }
 
-    virtual void begin() { connect(); }
+    virtual void begin() {}
     virtual AudioStream &outR() = 0;
     virtual AudioStream &outL() = 0;
     virtual AudioStream &inR() = 0;
@@ -68,8 +55,6 @@ template <typename T>
 class MonoFilter : public Filter
 {
 public:
-    using Filter::Filter; // inherit constructors
-
     T left() { return _left; }
     T right() { return _right; }
 
@@ -86,7 +71,6 @@ public:
 
 class GainFilter : public MonoFilter<SimpleMonoFilterChannel<AudioMixer4>>
 {
-    using MonoFilter::MonoFilter; // inherit constructors
 
 public:
     void gain(float g)
@@ -98,7 +82,6 @@ public:
 
 class BitCrusherFilter : public MonoFilter<SimpleMonoFilterChannel<AudioEffectBitcrusher>>
 {
-    using MonoFilter::MonoFilter; // inherit constructors
 
 public:
     void bits(uint8_t bits_)
@@ -116,12 +99,10 @@ public:
 
 class LimiterFilter : public MonoFilter<SimpleMonoFilterChannel<AudioEffectDynamics>>
 {
-    using MonoFilter::MonoFilter;
 
 public:
     void begin()
     {
-        MonoFilter::begin();
         _left.filter.compression(-12.0, 0.01, 0.06, 4.0);
         _right.filter.compression(-12.0, 0.01, 0.06, 4.0);
     }
@@ -129,7 +110,6 @@ public:
 
 class DelayFilter : public Filter
 {
-    using Filter::Filter;
 
 public:
     AudioMixer4 dryL;
@@ -155,7 +135,6 @@ public:
 
     void begin()
     {
-        Filter::begin();
         setActive(false);
     }
 
