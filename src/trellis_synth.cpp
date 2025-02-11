@@ -11,6 +11,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <new>
 
 #include "menu.h"
 
@@ -42,9 +43,11 @@ Polysynth32 synthinstance;
 
 AudioOutputAnalogStereo audioOut;
 
-AudioConnection patchCord8(synthinstance.getOutputLeft(), 0, audioOut, 0);
-AudioConnection patchCord9(synthinstance.getOutputRight(), 0, audioOut, 1);
-float globalGain = 0.2;
+// delayed init of these connections
+alignas(AudioConnection) byte bpol[sizeof(AudioConnection)];
+alignas(AudioConnection) byte bpor[sizeof(AudioConnection)];
+AudioConnection *patchOutLeft;
+AudioConnection *patchOutRight;
 
 void monitorUsage();
 
@@ -133,10 +136,14 @@ void setup()
   synthinstance.begin();
 
   // setup all filters
-  synthinstance.pushFilter(gainFilter);
   synthinstance.pushFilter(delayFilter);
   synthinstance.pushFilter(bitCrusherFilter);
   synthinstance.pushFilter(limiterFilter);
+  synthinstance.pushFilter(gainFilter);
+
+  // finally, connect the final output to sound out
+  patchOutLeft = new (bpol) AudioConnection(synthinstance.getOutputLeft(), 0, audioOut, 0);
+  patchOutRight = new (bpor) AudioConnection(synthinstance.getOutputRight(), 0, audioOut, 1);
 
   // Serial.println("synth started");
 
