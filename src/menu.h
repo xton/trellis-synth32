@@ -28,9 +28,9 @@ protected:
 class Slide
 {
 public:
-    const ISetting &left;
-    const ISetting &right;
-    Slide(const ISetting &left_, const ISetting &right_) : left(left_), right(right_) {}
+    ISetting &left;
+    ISetting &right;
+    Slide(ISetting &left_, ISetting &right_) : left(left_), right(right_) {}
 };
 
 template <typename V>
@@ -100,13 +100,13 @@ class Menu
     Polysynth32 &synth;
     Adafruit_SSD1306 &gfx;
 
-    const Slide slides[N];
+    Slide slides[N];
     int currentSlide = 0;
 
 public:
     Menu(Polysynth32 &synth_,
          Adafruit_SSD1306 &gfx_,
-         const Args... slides_)
+         Args... slides_)
         : synth(synth_),
           gfx(gfx_),
           slides{slides_...} {}
@@ -136,7 +136,7 @@ public:
     void rightClick()
     {
         currentSlide++;
-        if (currentSlide >= N)
+        if (currentSlide >= (int)N)
             currentSlide = N - 1;
 
         display();
