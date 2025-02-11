@@ -41,7 +41,7 @@ public:
 };
 
 template <typename T>
-class SimpleMonoFilterChannel
+class SimpleMonoFilterChannel : public MonoFilterChannel
 {
 public:
     T filter;
@@ -50,7 +50,7 @@ public:
 };
 
 template <typename T>
-class MonoFilter
+class MonoFilter : public Filter
 {
 public:
     T left() { return _left; }

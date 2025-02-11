@@ -10,6 +10,7 @@
 #include "meow_note.h"
 
 #include "layer.h"
+#include "filters.h"
 #include "debug.h"
 
 class Polysynth32
@@ -30,18 +31,6 @@ private:
     AudioMixer4 finalMixLeft;
     AudioMixer4 finalMixRight;
 
-    // effects and postprocessing
-    AudioMixer4 gainMixerLeft;
-    AudioMixer4 gainMixerRight;
-    AudioEffectDelay delayL;
-    AudioEffectDelay delayR;
-    AudioMixer4 delayMixerLeft;
-    AudioMixer4 delayMixerRight;
-    AudioEffectBitcrusher bitcrusherLeft;
-    AudioEffectBitcrusher bitcrusherRight;
-    AudioEffectDynamics limiterLeft;
-    AudioEffectDynamics limiterRight;
-
     // Audio connections for final mix stage
     AudioConnection patchL1{layer1.getOutputLeft(), 0, finalMixLeft, 0};
     AudioConnection patchL2{layer2.getOutputLeft(), 0, finalMixLeft, 1};
@@ -52,6 +41,20 @@ private:
     AudioConnection patchR2{layer2.getOutputRight(), 0, finalMixRight, 1};
     AudioConnection patchR3{layer3.getOutputRight(), 0, finalMixRight, 2};
     AudioConnection patchR4{layer4.getOutputRight(), 0, finalMixRight, 3};
+
+    // effects and postprocessing
+    GainFilter gain{finalMixLeft, finalMixRight};
+
+    AudioMixer4 gainMixerLeft;
+    AudioMixer4 gainMixerRight;
+    AudioEffectDelay delayL;
+    AudioEffectDelay delayR;
+    AudioMixer4 delayMixerLeft;
+    AudioMixer4 delayMixerRight;
+    AudioEffectBitcrusher bitcrusherLeft;
+    AudioEffectBitcrusher bitcrusherRight;
+    AudioEffectDynamics limiterLeft;
+    AudioEffectDynamics limiterRight;
 
     // filter connections
 
