@@ -13,6 +13,8 @@
 #include <Adafruit_SSD1306.h>
 #include <Fonts/FreeSansBold12pt7b.h>
 
+#include "menu.h"
+
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define SS_SWITCH 24     // this is the pin on the encoder connected to switch
@@ -128,6 +130,13 @@ public:
     displayLed();
   }
 };
+
+auto demo = Setting<int>("a thing: %d", 0, 0, 3, [](int i)
+                         { return i + 1; }, [](int i)
+                         { return i - 1; }, [](Polysynth32 &s, int i)
+                         { s.selectVoice(i); });
+
+auto demo2 = Menu(Slide(demo, demo));
 
 class EncoderRight : public EncoderControl
 {
