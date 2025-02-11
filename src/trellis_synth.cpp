@@ -53,18 +53,11 @@ Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 #define ENCODER1_ADDR 0x36
 #define ENCODER2_ADDR 0x37
 
-// auto demo = Setting("a thing: %d", 0, 0, 3,
-//                     SIMPLE_LAMBDA(int i, i + 1),
-//                     SIMPLE_LAMBDA(int i, i - 1),
-//                     PUBLISH_METHOD(selectVoice, int));
-
-// auto demo2 = Menu(synthinstance, display, Slide(demo, demo));
-
 auto volumeSetting =
     Setting("Vol: %d%%", 0.2f, 0.0f, 1.0f,
             SIMPLE_LAMBDA(float f, f + 0.05f),
             SIMPLE_LAMBDA(float f, f - 0.05f),
-            PUBLISH_METHOD(setGain, float),
+            PUBLISH_METHOD(gain.gain, float),
             SIMPLE_LAMBDA(float f, (int)(f * 100)));
 
 auto voiceSetting =
@@ -77,18 +70,18 @@ auto crusherBitsSetting =
     Setting("Bits: %d", 16, 2, 16,
             SIMPLE_LAMBDA(int i, i + 1),
             SIMPLE_LAMBDA(int i, i - 1),
-            PUBLISH_METHOD(setCrusherBits, int));
+            PUBLISH_METHOD(bitCrusher.bits, int));
 
 auto crusherSampleRateSetting =
     Setting("SR: %d", 44100, 690, 44100,
             SIMPLE_LAMBDA(int i, i * 2),
             SIMPLE_LAMBDA(int i, i / 2),
-            PUBLISH_METHOD(setCrusherSampleRate, int));
+            PUBLISH_METHOD(bitCrusher.sampleRate, int));
 
 auto delaySetting = Setting("Delay: %d", true, false, true,
                             SIMPLE_LAMBDA(bool b, !b),
                             SIMPLE_LAMBDA(bool b, !b),
-                            PUBLISH_METHOD(setDelay, bool));
+                            PUBLISH_METHOD(delay.setActive, bool));
 
 auto menu = Menu(synthinstance, display,
                  Slide(volumeSetting, voiceSetting),

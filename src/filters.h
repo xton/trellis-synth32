@@ -1,32 +1,47 @@
 #pragma once
 
 #include <Audio.h>
+#include <new>
+#include "effect_dynamics.h"
 
 class Filter
 {
 private:
-    Filter *parent;
-    AudioConnection patchLeft;
-    AudioConnection patchRight;
+    // we're doing delayed initialization
+    alignas(AudioConnection) byte plbuf[sizeof(AudioConnection)];
+    alignas(AudioConnection) byte prbuf[sizeof(AudioConnection)];
+    AudioConnection *patchLeft = NULL;
+    AudioConnection *patchRight = NULL;
+
+    // stored by constructor for use the finalizer
+    AudioStream *parentLeft;
+    AudioStream *parentRight;
 
 public:
     // first layer on filter stack must use this
-    Filter(AudioStream &l, AudioStream &r)
-        : parent(NULL),
-          patchLeft(AudioConnection(l, inL())),
-          patchRight(AudioConnection(r, inR()))
-    {
-    }
+    Filter(AudioStream &l, AudioStream &r) : parentLeft(&l), parentRight(&r) {}
 
     // subsequent layers use this
-    Filter(Filter &parent_)
-        : parent(&parent_),
-          patchLeft(AudioConnection(parent->outL(), inL())),
-          patchRight(AudioConnection(parent->outR(), inR()))
+    Filter(Filter *parent) : Filter(parent->outL(), parent->outR()) {}
+
+    void connect()
     {
+        if ((!patchLeft || !patchRight))
+        {
+            patchLeft = new (plbuf) AudioConnection(*parentLeft, inL());
+            patchRight = new (prbuf) AudioConnection(*parentRight, inR());
+        }
     }
 
-    virtual void begin() {}
+    ~Filter()
+    {
+        if (patchLeft)
+            patchLeft->~AudioConnection();
+        if (patchRight)
+            patchRight->~AudioConnection();
+    }
+
+    virtual void begin() { connect(); }
     virtual AudioStream &outR() = 0;
     virtual AudioStream &outL() = 0;
     virtual AudioStream &inR() = 0;
@@ -53,6 +68,8 @@ template <typename T>
 class MonoFilter : public Filter
 {
 public:
+    using Filter::Filter; // inherit constructors
+
     T left() { return _left; }
     T right() { return _right; }
 
@@ -69,6 +86,8 @@ public:
 
 class GainFilter : public MonoFilter<SimpleMonoFilterChannel<AudioMixer4>>
 {
+    using MonoFilter::MonoFilter; // inherit constructors
+
 public:
     void gain(float g)
     {
@@ -79,6 +98,8 @@ public:
 
 class BitCrusherFilter : public MonoFilter<SimpleMonoFilterChannel<AudioEffectBitcrusher>>
 {
+    using MonoFilter::MonoFilter; // inherit constructors
+
 public:
     void bits(uint8_t bits_)
     {
@@ -93,8 +114,23 @@ public:
     }
 };
 
+class LimiterFilter : public MonoFilter<SimpleMonoFilterChannel<AudioEffectDynamics>>
+{
+    using MonoFilter::MonoFilter;
+
+public:
+    void begin()
+    {
+        MonoFilter::begin();
+        _left.filter.compression(-12.0, 0.01, 0.06, 4.0);
+        _right.filter.compression(-12.0, 0.01, 0.06, 4.0);
+    }
+};
+
 class DelayFilter : public Filter
 {
+    using Filter::Filter;
+
 public:
     AudioMixer4 dryL;
     AudioMixer4 dryR;
@@ -117,7 +153,11 @@ public:
     AudioStream &inR() { return dryR; }
     AudioStream &inL() { return dryL; }
 
-    void begin() { setActive(false); }
+    void begin()
+    {
+        Filter::begin();
+        setActive(false);
+    }
 
     void setActive(bool active)
     {
