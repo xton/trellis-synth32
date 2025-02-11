@@ -64,14 +64,16 @@ public:
             V maxValue_,
             Mutator incrementor_,
             Mutator decrementor_,
-            Publisher publisher_)
+            Publisher publisher_,
+            IntConverter intConverter_ = NULL)
         : fmt(fmt_),
           value(value_),
           minValue(minValue_),
           maxValue(maxValue_),
           incrementor(incrementor_),
           decrementor(decrementor_),
-          publisher(publisher_)
+          publisher(publisher_),
+          intConverter(intConverter_)
     {
     }
 
@@ -108,7 +110,7 @@ public:
 };
 
 template <typename V>
-Setting(const char *, V, V, V, V (*)(V), V (*)(V), void (*)(Polysynth32 &, V)) -> Setting<V>;
+Setting(const char *, V, V, V, V (*)(V), V (*)(V), void (*)(Polysynth32 &, V), int (*)(V)) -> Setting<V>;
 
 template <size_t N, typename... Args>
 class Menu

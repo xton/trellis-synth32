@@ -64,7 +64,8 @@ auto volumeSetting =
     Setting("Vol: %d%%", 0.2f, 0.0f, 1.0f,
             SIMPLE_LAMBDA(float f, f + 0.05f),
             SIMPLE_LAMBDA(float f, f - 0.05f),
-            PUBLISH_METHOD(setGain, float));
+            PUBLISH_METHOD(setGain, float),
+            SIMPLE_LAMBDA(float f, (int)(f * 100)));
 
 auto voiceSetting =
     Setting("Voice: %d", 0, 0, Polysynth32::LAYER_COUNT - 1,
@@ -115,7 +116,6 @@ EncoderRight encoder2;
 
 void setup()
 {
-  volumeSetting.setIntConverter(SIMPLE_LAMBDA(float f, (int)(f * 100)));
 
   Serial.begin(115200);
   // while (!Serial);
