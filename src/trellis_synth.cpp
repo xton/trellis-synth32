@@ -54,167 +54,61 @@ Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 #define ENCODER1_ADDR 0x36
 #define ENCODER2_ADDR 0x37
 
+// auto demo = Setting("a thing: %d", 0, 0, 3,
+//                     SIMPLE_LAMBDA(int i, i + 1),
+//                     SIMPLE_LAMBDA(int i, i - 1),
+//                     PUBLISH_METHOD(selectVoice, int));
+
+// auto demo2 = Menu(synthinstance, display, Slide(demo, demo));
+
+auto volumeSetting =
+    Setting("Vol: %d%%", 0.2f, 0.0f, 1.0f,
+            SIMPLE_LAMBDA(float f, f + 0.05f),
+            SIMPLE_LAMBDA(float f, f - 0.05f),
+            PUBLISH_METHOD(setGain, float));
+
+auto voiceSetting =
+    Setting("Voice: %d", 0, 0, Polysynth32::LAYER_COUNT,
+            SIMPLE_LAMBDA(int i, i + 1),
+            SIMPLE_LAMBDA(int i, i - 1),
+            PUBLISH_METHOD(selectVoice, int));
+
+auto crusherBitsSetting =
+    Setting("Bits: %d", 16, 2, 16,
+            SIMPLE_LAMBDA(int i, i + 1),
+            SIMPLE_LAMBDA(int i, i - 1),
+            PUBLISH_METHOD(setCrusherBits, int));
+
+auto crusherSampleRateSetting =
+    Setting("Smpls: %d", 44100, 690, 44100,
+            SIMPLE_LAMBDA(int i, i * 2),
+            SIMPLE_LAMBDA(int i, i / 2),
+            PUBLISH_METHOD(setCrusherSampleRate, int));
+
+auto delaySetting = Setting("Delay: %d", false, false, true,
+                            SIMPLE_LAMBDA(bool b, !b),
+                            SIMPLE_LAMBDA(bool b, !b),
+                            PUBLISH_METHOD(setDelay, bool));
+
+auto menu = Menu(synthinstance, display,
+                 Slide(volumeSetting, voiceSetting),
+                 Slide(crusherBitsSetting, crusherSampleRateSetting),
+                 Slide(delaySetting, delaySetting));
+
 class EncoderLeft : public EncoderControl
 {
-
 public:
-  bool state = true;
-  uint8_t voiceNumber = 0;
-
-  void displayLed()
-  {
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setFont(&FreeSansBold12pt7b);
-    display.setTextColor(SSD1306_WHITE); // Draw white text
-    display.setCursor(0, 32);
-    if (state)
-    {
-      display.printf("Voice: %d\n", voiceNumber);
-    }
-    else
-    {
-      display.printf("Vol: %d%%\n", (int)(globalGain * 100));
-    }
-    display.display();
-  }
-
-  void inc() override
-  {
-    Serial.println("left up");
-    if (state)
-    {
-      if (voiceNumber < Polysynth32::LAYER_COUNT - 1)
-      {
-        voiceNumber += 1;
-        synthinstance.selectVoice(voiceNumber);
-      }
-    }
-    else
-    {
-      globalGain += 0.05;
-      if (globalGain > 1.0)
-        globalGain = 1.0;
-
-      synthinstance.setGain(globalGain);
-    }
-    displayLed();
-  }
-  void decr() override
-  {
-    Serial.println("left down");
-
-    if (state)
-    {
-      if (voiceNumber > 0)
-      {
-        voiceNumber -= 1;
-        synthinstance.selectVoice(voiceNumber);
-      }
-    }
-    else
-    {
-      globalGain -= 0.05;
-      if (globalGain < 0.0)
-        globalGain = 0.0;
-
-      synthinstance.setGain(globalGain);
-    }
-
-    displayLed();
-  }
-  void buttonPushed() override
-  {
-    Serial.println("left pushed");
-    state = !state;
-    displayLed();
-  }
+  void inc() override { menu.leftInc(); }
+  void decr() override { menu.leftDec(); }
+  void buttonPushed() override { menu.leftClick(); }
 };
-
-auto demo = Setting("a thing: %d", 0, 0, 3,
-                    SIMPLE_LAMBDA(int i, i + 1),
-                    SIMPLE_LAMBDA(int i, i - 1),
-                    PUBLISH_METHOD(selectVoice));
-
-auto demo2 = Menu(Slide(demo, demo));
 
 class EncoderRight : public EncoderControl
 {
 public:
-  bool state = false;
-  // BitCrusher
-  int current_CrushBits = 16;     // this defaults to passthrough.
-  int current_SampleRate = 44100; // this defaults to passthrough.
-
-  void displayLed()
-  {
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setFont(&FreeSansBold12pt7b);
-    display.setTextColor(SSD1306_WHITE); // Draw white text
-    display.setCursor(0, 32);
-    if (state)
-    {
-      display.printf("Bits: %d\n", current_CrushBits);
-    }
-    else
-    {
-      display.printf("Smpls: %d\n", current_SampleRate);
-    }
-    display.display();
-  }
-
-  void inc() override
-  {
-    Serial.println("right up");
-    if (state)
-    {
-      current_CrushBits += 1;
-      if (current_CrushBits > 16)
-        current_CrushBits = 16;
-
-      synthinstance.setCrusherBits(current_CrushBits);
-    }
-    else
-    {
-      current_SampleRate *= 2;
-      if (current_SampleRate > 44100)
-        current_SampleRate = 44100;
-
-      synthinstance.setCrusherSampleRate(current_SampleRate);
-    }
-
-    displayLed();
-  }
-
-  void decr() override
-  {
-    Serial.println("right down");
-    if (state)
-    {
-      current_CrushBits -= 1;
-      if (current_CrushBits < 2)
-        current_CrushBits = 2;
-
-      synthinstance.setCrusherBits(current_CrushBits);
-    }
-    else
-    {
-      current_SampleRate /= 2;
-      if (current_SampleRate < 690)
-        current_SampleRate = 690;
-
-      synthinstance.setCrusherSampleRate(current_SampleRate);
-    }
-
-    displayLed();
-  }
-  void buttonPushed() override
-  {
-    Serial.println("right pushed");
-    state = !state;
-    displayLed();
-  }
+  void inc() override { menu.rightInc(); }
+  void decr() override { menu.rightDec(); }
+  void buttonPushed() override { menu.rightClick(); }
 };
 
 EncoderLeft encoder1;

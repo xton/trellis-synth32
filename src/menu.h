@@ -97,15 +97,76 @@ Setting(const char *, V, V, V, V (*)(V), V (*)(V), void (*)(Polysynth32 &, V)) -
 template <size_t N, typename... Args>
 class Menu
 {
+    Polysynth32 &synth;
+    Adafruit_SSD1306 &gfx;
+
     const Slide slides[N];
+    int currentSlide = 0;
 
 public:
-    Menu(const Args... slides_) : slides{slides_...} {}
+    Menu(Polysynth32 &synth_,
+         Adafruit_SSD1306 &gfx_,
+         const Args... slides_)
+        : synth(synth_),
+          gfx(gfx_),
+          slides{slides_...} {}
+
+    void display()
+    {
+        gfx.clearDisplay();
+        gfx.setTextSize(1);
+        gfx.setFont(&FreeSansBold12pt7b);
+        gfx.setTextColor(SSD1306_WHITE); // Draw white text
+        gfx.setCursor(0, 32);
+        slides[currentSlide].left.display(gfx);
+        gfx.setCursor(0, 64);
+        slides[currentSlide].right.display(gfx);
+        gfx.display();
+    }
+
+    void leftClick()
+    {
+        currentSlide--;
+        if (currentSlide < 0)
+            currentSlide = 0;
+
+        display();
+    }
+
+    void rightClick()
+    {
+        currentSlide++;
+        if (currentSlide >= N)
+            currentSlide = N - 1;
+
+        display();
+    }
+
+    void leftInc()
+    {
+        slides[currentSlide].left.increment(synth);
+        display();
+    }
+    void leftDec()
+    {
+        slides[currentSlide].left.decrement(synth);
+        display();
+    }
+    void rightInc()
+    {
+        slides[currentSlide].right.increment(synth);
+        display();
+    }
+    void rightDec()
+    {
+        slides[currentSlide].right.decrement(synth);
+        display();
+    }
 };
 
 // Deduction guide
 template <typename... Args>
-Menu(Args...) -> Menu<sizeof...(Args), Args...>;
+Menu(Polysynth32 &, Adafruit_SSD1306 &, Args...) -> Menu<sizeof...(Args), Args...>;
 
 #define SIMPLE_LAMBDA(decl, expr) (+[](decl) { return expr; })
-#define PUBLISH_METHOD(meth) (+[](Polysynth32 &s, int i) { return s.meth(i); })
+#define PUBLISH_METHOD(meth, tpe) (+[](Polysynth32 &s, tpe i) { return s.meth(i); })
