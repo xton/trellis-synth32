@@ -83,6 +83,12 @@ public:
     {
     }
 
+    void set(V newValue)
+    {
+        value = newValue;
+        publisher(value);
+    }
+
     void increment()
     {
         value = incrementor(value);

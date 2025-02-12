@@ -91,7 +91,7 @@ auto crusherSampleRateSetting =
 
 //
 
-auto driveSetting = Setting("Drive: %d%%", 1.0f, 0.0f, 2.0f,
+auto driveSetting = Setting("Drive: %d%%", 1.0f, 0.0f, 4.0f,
                             SIMPLE_LAMBDA(float f, f + 0.05f),
                             SIMPLE_LAMBDA(float f, f - 0.05f),
                             PUBLISH_METHOD(feedbackFilter.setDrive, float),
@@ -135,7 +135,7 @@ auto filterFreqSetting = Setting("FFreq: %d", 1000, 400, 2000,
                                  SIMPLE_LAMBDA(int i, i - 10),
                                  PUBLISH_METHOD(feedbackFilter.setFilterFreq, int));
 
-auto filterResSetting = Setting("FRes: %d%%", 0.7f, 0.0f, 0.9f,
+auto filterResSetting = Setting("FRes: %d%%", 0.7f, 0.0f, 4.0f,
                                 SIMPLE_LAMBDA(float f, f + 0.05f),
                                 SIMPLE_LAMBDA(float f, f - 0.05f),
                                 PUBLISH_METHOD(feedbackFilter.setFilterRes, float),
