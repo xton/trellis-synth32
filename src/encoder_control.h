@@ -14,10 +14,16 @@ public:
     EncoderControl() = default;
 
     // override these!
-    virtual void buttonPushed()
+    virtual void buttonDown()
     {
-        Serial.println("generic button pushed");
+        Serial.println("generic button down");
     };
+
+    virtual void buttonUp()
+    {
+        Serial.println("generic button up");
+    };
+
     virtual void inc()
     {
         Serial.println("generic inc");
@@ -38,6 +44,11 @@ public:
         encoder.pinMode(SS_SWITCH, INPUT_PULLUP);
     }
 
+    bool isDown()
+    {
+        return !encoder.digitalRead(SS_SWITCH);
+    }
+
     void loop()
     {
         int32_t d = encoder.getEncoderDelta();
@@ -51,10 +62,13 @@ public:
             decr();
             d++;
         }
-        bool b = !encoder.digitalRead(SS_SWITCH);
-        if (b != buttonState && b)
+        bool b = isDown();
+        if (b != buttonState)
         {
-            buttonPushed();
+            if (b)
+                buttonDown();
+            else
+                buttonUp();
         }
         buttonState = b;
     }

@@ -215,28 +215,32 @@ public:
     AudioStream &inR() { return right.in(); }
     AudioStream &inL() { return left.in(); }
 
-    void setDelayRight(float d) { right.delay.delay(0, d); }
-    void setDelayLeft(float d) { left.delay.delay(0, d); }
-    void setDrive(float amount)
+    void setDelayRight(float d)
     {
-        // Clamp drive amount to avoid excessive feedback
-        float drive = amount > 1.0f ? 1.0f : amount;
-        left.driveMix.gain(0, drive);
-        right.driveMix.gain(0, drive);
+        right.delay.delay(0, d);
     }
 
-    void setFeedback(float amount)
+    void setDelayLeft(float d)
+    {
+        left.delay.delay(0, d);
+    }
+
+    void setDrive(float amount)
+    {
+        left.driveMix.gain(0, amount);
+        right.driveMix.gain(0, amount);
+    }
+
+    void setFeedback(float fb)
     {
         // Clamp feedback to 0.9 for safety
-        float fb = amount > 0.9f ? 0.9f : amount;
         left.driveMix.gain(1, fb);
         right.driveMix.gain(1, fb);
     }
 
-    void setCrossFeedback(float amount)
+    void setCrossFeedback(float xfb)
     {
         // Clamp cross-feedback to 0.5 for safety
-        float xfb = amount > 0.5f ? 0.5f : amount;
         left.driveMix.gain(2, xfb);
         right.driveMix.gain(2, xfb);
     }
@@ -247,10 +251,8 @@ public:
         right.filter.frequency(freq);
     }
 
-    void setFilterRes(float res)
+    void setFilterRes(float q)
     {
-        // Clamp resonance to 0.9 for safety
-        float q = res > 0.9f ? 0.9f : res;
         left.filter.resonance(q);
         right.filter.resonance(q);
     }
@@ -266,12 +268,14 @@ public:
 
     void begin()
     {
-        setDelayLeft(266);
-        setDelayRight(399);
+        setDelayRight(266);
+        setDelayLeft(399);
 
         setDrive(1.0);
+
         setFeedback(0.4);
         setCrossFeedback(0.2);
+
         setFilterFreq(1000);
         setFilterRes(0.7);
 

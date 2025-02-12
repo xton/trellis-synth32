@@ -58,16 +58,18 @@ Adafruit_NeoTrellisM4 trellis = Adafruit_NeoTrellisM4();
 
 // effects and postprocessing
 GainFilter gainFilter;
-DelayFilter delayFilter;
 BitCrusherFilter bitCrusherFilter;
 LimiterFilter limiterFilter;
+FeeedbackFilter feedbackFilter;
+
+#define PERCENT_CONVERSION SIMPLE_LAMBDA(float f, (int)(f * 100))
 
 auto volumeSetting =
     Setting("Vol: %d%%", 0.2f, 0.0f, 1.0f,
             SIMPLE_LAMBDA(float f, f + 0.05f),
             SIMPLE_LAMBDA(float f, f - 0.05f),
             PUBLISH_METHOD(gainFilter.gain, float),
-            SIMPLE_LAMBDA(float f, (int)(f * 100)));
+            PERCENT_CONVERSION);
 
 auto voiceSetting =
     Setting("Voice: %d", 0, 0, Polysynth32::LAYER_COUNT - 1,
@@ -87,22 +89,74 @@ auto crusherSampleRateSetting =
             SIMPLE_LAMBDA(int i, i / 2),
             PUBLISH_METHOD(bitCrusherFilter.sampleRate, int));
 
-auto delaySetting = Setting("Delay: %d", true, false, true,
-                            SIMPLE_LAMBDA(bool b, !b),
-                            SIMPLE_LAMBDA(bool b, !b),
-                            PUBLISH_METHOD(delayFilter.setActive, bool));
+//
+
+auto driveSetting = Setting("Drive: %d%%", 1.0f, 0.0f, 2.0f,
+                            SIMPLE_LAMBDA(float f, f + 0.05f),
+                            SIMPLE_LAMBDA(float f, f - 0.05f),
+                            PUBLISH_METHOD(feedbackFilter.setDrive, float),
+                            PERCENT_CONVERSION);
+
+auto wetDrySetting = Setting("Wet/Dry: %d%%", 0.7f, 0.0f, 1.0f,
+                             SIMPLE_LAMBDA(float f, f + 0.05f),
+                             SIMPLE_LAMBDA(float f, f - 0.05f),
+                             PUBLISH_METHOD(feedbackFilter.setWetDryMix, float),
+                             PERCENT_CONVERSION);
+//
+
+auto delayRightSetting = Setting("DelayR: %d", 266, 0, 660,
+                                 SIMPLE_LAMBDA(int i, i < 10 ? i + 1 : i * 130 / 100),
+                                 SIMPLE_LAMBDA(int i, i * 100 / 130),
+                                 PUBLISH_METHOD(feedbackFilter.setDelayRight, int));
+
+auto delayLeftSetting = Setting("DelayL: %d", 399, 0, 660,
+                                SIMPLE_LAMBDA(int i, i < 10 ? i + 1 : i * 130 / 100),
+                                SIMPLE_LAMBDA(int i, i * 100 / 130),
+                                PUBLISH_METHOD(feedbackFilter.setDelayLeft, int));
+
+//
+
+auto feedbackSetting = Setting("FB: %d%%", 0.4f, 0.0f, 0.9f,
+                               SIMPLE_LAMBDA(float f, f + 0.05f),
+                               SIMPLE_LAMBDA(float f, f - 0.05f),
+                               PUBLISH_METHOD(feedbackFilter.setFeedback, float),
+                               PERCENT_CONVERSION);
+
+auto crossFeedbackSetting = Setting("XFB: %d%%", 0.2f, 0.0f, 0.5f,
+                                    SIMPLE_LAMBDA(float f, f + 0.05f),
+                                    SIMPLE_LAMBDA(float f, f - 0.05f),
+                                    PUBLISH_METHOD(feedbackFilter.setCrossFeedback, float),
+                                    PERCENT_CONVERSION);
+
+//
+
+auto filterFreqSetting = Setting("FFreq: %d", 1000, 400, 2000,
+                                 SIMPLE_LAMBDA(int i, i + 10),
+                                 SIMPLE_LAMBDA(int i, i - 10),
+                                 PUBLISH_METHOD(feedbackFilter.setFilterFreq, int));
+
+auto filterResSetting = Setting("FRes: %d%%", 0.7f, 0.0f, 0.9f,
+                                SIMPLE_LAMBDA(float f, f + 0.05f),
+                                SIMPLE_LAMBDA(float f, f - 0.05f),
+                                PUBLISH_METHOD(feedbackFilter.setFilterRes, float),
+                                PERCENT_CONVERSION);
 
 auto menu = Menu(display,
-                 Slide(volumeSetting, voiceSetting),
-                 Slide(crusherBitsSetting, crusherSampleRateSetting),
-                 Slide(delaySetting, delaySetting));
+                 Slide(volumeSetting, voiceSetting, "main"),
+                 Slide(crusherBitsSetting, crusherSampleRateSetting, "bit crusher"),
+
+                 Slide(driveSetting, wetDrySetting, "drive"),
+                 Slide(delayLeftSetting, delayRightSetting, "delay"),
+                 Slide(feedbackSetting, crossFeedbackSetting, "feedback"),
+                 Slide(filterFreqSetting, filterResSetting, "filter"));
 
 class EncoderLeft : public EncoderControl
 {
 public:
   void inc() override { menu.leftInc(); }
   void decr() override { menu.leftDec(); }
-  void buttonPushed() override { menu.leftClick(); }
+  void buttonDown() override { menu.leftDown(); }
+  void buttonUp() override { menu.leftUp(); }
 };
 
 class EncoderRight : public EncoderControl
@@ -110,7 +164,8 @@ class EncoderRight : public EncoderControl
 public:
   void inc() override { menu.rightInc(); }
   void decr() override { menu.rightDec(); }
-  void buttonPushed() override { menu.rightClick(); }
+  void buttonDown() override { menu.rightDown(); }
+  void buttonUp() override { menu.rightUp(); }
 };
 
 EncoderLeft encoder1;
@@ -136,7 +191,7 @@ void setup()
   synthinstance.begin();
 
   // setup all filters
-  synthinstance.pushFilter(delayFilter);
+  synthinstance.pushFilter(feedbackFilter);
   synthinstance.pushFilter(bitCrusherFilter);
   synthinstance.pushFilter(limiterFilter);
   synthinstance.pushFilter(gainFilter);
@@ -159,8 +214,13 @@ void setup()
     Serial.println("SSD1306 allocation failed");
   }
   display.setRotation(2);
+  display.clearDisplay();
+  display.display();
 
+  // getting weird corruption on first display otherwise
   menu.begin();
+  delay(30);
+  menu.display();
 
   Serial.println("setup done");
 }

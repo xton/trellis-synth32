@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Fonts/FreeSansBold9pt7b.h>
+#include <Fonts/TomThumb.h>
 
 class ISetting
 {
@@ -31,7 +32,13 @@ class Slide
 public:
     ISetting &left;
     ISetting &right;
-    Slide(ISetting &left_, ISetting &right_) : left(left_), right(right_) {}
+    const char *title = NULL;
+    Slide(ISetting &left_,
+          ISetting &right_,
+          const char *title_ = NULL)
+        : left(left_),
+          right(right_),
+          title(title_) {}
 };
 
 template <typename V>
@@ -124,6 +131,9 @@ class Menu
 
     Slide slides[N];
     int currentSlide = 0;
+    bool leftIsDown = false;
+    bool rightIsDown = false;
+    bool began = false;
 
 public:
     Menu(Adafruit_SSD1306 &gfx_,
@@ -133,56 +143,118 @@ public:
 
     void display()
     {
+        if (!began)
+            return;
+
         gfx.clearDisplay();
+        gfx.setTextColor(SSD1306_WHITE); // Draw white text
+
+        // title
+        slides[currentSlide].right.display(gfx);
+        if (slides[currentSlide].title)
+        {
+            gfx.setTextSize(2);
+            gfx.setCursor(10, 10);
+            gfx.setFont(&TomThumb);
+            gfx.print(slides[currentSlide].title);
+        }
+
+        // settings
         gfx.setTextSize(1);
         gfx.setFont(&FreeSansBold9pt7b);
-        gfx.setTextColor(SSD1306_WHITE); // Draw white text
-        gfx.setCursor(0, 21);
+        gfx.setCursor(0, 31);
         gfx.print("< ");
         slides[currentSlide].left.display(gfx);
-        gfx.setCursor(0, 50);
+        gfx.setCursor(0, 53);
         gfx.print("> ");
-        slides[currentSlide].right.display(gfx);
         gfx.display();
     }
 
-    void leftClick()
-    {
-        currentSlide--;
-        if (currentSlide < 0)
-            currentSlide = 0;
-
-        display();
-    }
-
-    void rightClick()
+    void nextSlide()
     {
         currentSlide++;
         if (currentSlide >= (int)N)
             currentSlide = N - 1;
-
         display();
+    }
+
+    void prevSlide()
+    {
+        currentSlide--;
+        if (currentSlide < 0)
+            currentSlide = 0;
+        display();
+    }
+
+    void leftDown()
+    {
+        leftIsDown = true;
+        prevSlide();
+    }
+
+    void leftUp()
+    {
+        leftIsDown = false;
+    }
+
+    void rightDown()
+    {
+        rightIsDown = true;
+        nextSlide();
+    }
+
+    void rightUp()
+    {
+        rightIsDown = false;
     }
 
     void leftInc()
     {
-        slides[currentSlide].left.increment();
-        display();
+        if (leftIsDown || rightIsDown)
+        {
+            nextSlide();
+        }
+        else
+        {
+            slides[currentSlide].left.increment();
+            display();
+        }
     }
     void leftDec()
     {
-        slides[currentSlide].left.decrement();
-        display();
+        if (leftIsDown || rightIsDown)
+        {
+            prevSlide();
+        }
+        else
+        {
+            slides[currentSlide].left.decrement();
+            display();
+        }
     }
     void rightInc()
     {
-        slides[currentSlide].right.increment();
-        display();
+        if (leftIsDown || rightIsDown)
+        {
+            nextSlide();
+        }
+        else
+        {
+            slides[currentSlide].right.increment();
+            display();
+        }
     }
     void rightDec()
     {
-        slides[currentSlide].right.decrement();
-        display();
+        if (leftIsDown || rightIsDown)
+        {
+            prevSlide();
+        }
+        else
+        {
+            slides[currentSlide].right.decrement();
+            display();
+        }
     }
 
     void begin()
@@ -192,6 +264,7 @@ public:
             slides[i].right.begin();
             slides[i].left.begin();
         }
+        began = true;
         display();
     }
 };
