@@ -49,3 +49,33 @@ void AudioPlayPlayMemoryVariable::update(void)
     transmit(block);
     release(block);
 }
+
+void AudioPlayPlayMemoryVariable::play(const int16_t *data, uint32_t length)
+{
+    AudioNoInterrupts();
+    sample_data = data;
+    sample_length = length;
+    sample_pos = 0;
+    findZeroCrossing();
+    playing = true;
+    AudioInterrupts();
+}
+
+/// @brief fast forward to the first zero crossing to avoid a starting click.
+void AudioPlayPlayMemoryVariable::findZeroCrossing()
+{
+    const static size_t MAX_SKIP = 600;
+    float limit = sample_length < MAX_SKIP ? sample_length : MAX_SKIP;
+    int16_t previous, current = sample_data[(size_t)sample_pos];
+
+    do
+    {
+        previous = current;
+        current = sample_data[(size_t)sample_pos];
+
+        if (current == 0 || (previous < 0 && current > 0) || (current < 0 && previous > 0))
+            break;
+
+        sample_pos += 1.0;
+    } while (sample_pos < limit);
+}

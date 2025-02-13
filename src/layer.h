@@ -116,7 +116,7 @@ public:
     AudioStream &getOutputLeft() { return finalLeft; }
     AudioStream &getOutputRight() { return finalRight; }
 
-    void setScale(float const *frequencies)
+    virtual void setScale(float const *frequencies)
     {
         for_all_notes([&frequencies](INote &note)
                       { note.setFrequency(*(frequencies++)); });

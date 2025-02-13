@@ -36,6 +36,8 @@ public:
                     rows[j].notes[i].setSample((int16_t *)AudioSampleMeowsic_c3, sizeof(AudioSampleMeowsic_c3) / 2, 523.25);
                     break;
                 }
+                // these meows is quiet!
+                rows[j].notes[i].setGain(3.0);
             }
     }
 };
