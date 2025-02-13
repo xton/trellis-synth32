@@ -19,10 +19,7 @@ private:
 public:
     SampleNote() {}
 
-    virtual void begin() override
-    {
-        setGain(1.0);
-    }
+    virtual void begin() override {}
 
     void noteOn() override
     {
