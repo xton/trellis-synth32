@@ -11,6 +11,7 @@ private:
 public:
     virtual void begin() override
     {
+        SampleNote::begin();
         // actual frequency for c4, but i want to transpose
         setSample(MeowSample16, MeowSample16Length, 261.6);
     }
