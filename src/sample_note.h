@@ -24,7 +24,8 @@ public:
         player.setSpeed(baseFreq / referenceFreq);
         player.play(buffer, buffer_len);
     }
-    void noteOff() { player.stop(); }
+    // void noteOff() { player.stop(); }
+    void noteOff() {}
 
     void enable() override {}
     void disable() override { player.stop(); }

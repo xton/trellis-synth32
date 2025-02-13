@@ -35,10 +35,10 @@ class Row
 public:
     AudioStream &getOutputLeft() { return finalLeft; }
     AudioStream &getOutputRight() { return finalRight; }
+    T notes[ILayer::NOTES_PER_ROW];
 
 protected:
     friend class Layer<T>;
-    T notes[ILayer::NOTES_PER_ROW];
 
 private:
     AudioMixer4 mixLeft1;   // Mixes notes 0-3
@@ -86,7 +86,7 @@ public:
                 operation(rows[j].notes[i]);
     }
 
-    void begin()
+    virtual void begin()
     {
         for_all_notes([](INote &note)
                       { note.begin(); });
@@ -122,7 +122,7 @@ public:
                       { note.setFrequency(*(frequencies++)); });
     }
 
-private:
+protected:
     Row<T> rows[ROW_COUNT];
     AudioMixer4 finalLeft;  // Combines left mixers
     AudioMixer4 finalRight; // Combines right mixers

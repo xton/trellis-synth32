@@ -92,6 +92,81 @@ public:
     }
 };
 
+/// @brief This filter is actually too expensive for our project
+class ReverbFilter : public MonoFilter<SimpleMonoFilterChannel<AudioEffectReverb>>
+{
+public:
+    void time(float f)
+    {
+        left.filter.reverbTime(f);
+        right.filter.reverbTime(f);
+    }
+};
+
+class FlangeFilter : public MonoFilter<SimpleMonoFilterChannel<AudioEffectFlange>>
+{
+#define FLANGE_DELAY_LENGTH (6 * AUDIO_BLOCK_SAMPLES)
+    // Allocate the delay lines for left and right channels
+    short l_delayline[FLANGE_DELAY_LENGTH];
+    short r_delayline[FLANGE_DELAY_LENGTH];
+
+public:
+    void begin()
+    {
+        left.filter.begin(l_delayline, FLANGE_DELAY_LENGTH,
+                          FLANGE_DELAY_LENGTH / 4,
+                          FLANGE_DELAY_LENGTH / 4,
+                          0.5);
+        right.filter.begin(r_delayline, FLANGE_DELAY_LENGTH,
+                           FLANGE_DELAY_LENGTH / 4,
+                           FLANGE_DELAY_LENGTH / 4,
+                           0.5);
+
+        enable(false);
+    }
+
+    void enable(bool isEnabled)
+    {
+        if (isEnabled)
+        {
+            left.filter.voices(FLANGE_DELAY_LENGTH / 4,
+                               FLANGE_DELAY_LENGTH / 4,
+                               0.5);
+            right.filter.voices(FLANGE_DELAY_LENGTH / 4,
+                                FLANGE_DELAY_LENGTH / 4,
+                                0.5);
+        }
+        else
+        {
+            left.filter.voices(FLANGE_DELAY_PASSTHRU, 0, 0);
+            right.filter.voices(FLANGE_DELAY_PASSTHRU, 0, 0);
+        }
+    }
+};
+
+class ChorusFilter : public MonoFilter<SimpleMonoFilterChannel<AudioEffectChorus>>
+{
+#define CHORUS_DELAY_LENGTH (16 * AUDIO_BLOCK_SAMPLES)
+    // Allocate the delay lines for left and right channels
+    short l_delayline[CHORUS_DELAY_LENGTH];
+    short r_delayline[CHORUS_DELAY_LENGTH];
+
+public:
+    void begin()
+    {
+        left.filter.begin(l_delayline, CHORUS_DELAY_LENGTH, 2);
+        right.filter.begin(r_delayline, CHORUS_DELAY_LENGTH, 2);
+
+        voices(0);
+    }
+
+    void voices(uint8_t v)
+    {
+        left.filter.voices(v);
+        right.filter.voices(v);
+    }
+};
+
 class LimiterFilter : public MonoFilter<SimpleMonoFilterChannel<AudioEffectDynamics>>
 {
 

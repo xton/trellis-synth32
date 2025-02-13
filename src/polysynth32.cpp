@@ -37,7 +37,7 @@ void Polysynth32::begin()
 {
     setupScales();
 
-    // Initialize synth rows
+    // Initialize synth layers
     for (int i = 0; i < LAYER_COUNT; i++)
         layers[i]->begin();
 

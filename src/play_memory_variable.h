@@ -29,5 +29,5 @@ private:
     const int16_t *sample_data = NULL;
     uint32_t sample_length = 0;
     float speed = 1.0;
-    float sample_pos = 0.0;
+    volatile float sample_pos = 0.0;
 };

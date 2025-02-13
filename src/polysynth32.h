@@ -12,6 +12,7 @@
 #include "layer.h"
 #include "filters.h"
 #include "debug.h"
+#include "meow_layer.h"
 
 class Polysynth32
 {
@@ -20,7 +21,7 @@ public:
 
 private:
     Layer<SimpleSynthNote> layer1;
-    Layer<MeowNote> layer2;
+    MeowLayer layer2;
     Layer<GuitarNote> layer3;
     Layer<CheapGuitarNote> layer4;
 

@@ -61,6 +61,8 @@ GainFilter gainFilter;
 BitCrusherFilter bitCrusherFilter;
 LimiterFilter limiterFilter;
 FeeedbackFilter feedbackFilter;
+FlangeFilter flangeFilter;
+ChorusFilter chorusFilter;
 
 #define PERCENT_CONVERSION SIMPLE_LAMBDA(float f, (int)(f * 100))
 
@@ -141,6 +143,22 @@ auto filterResSetting = Setting("FRes: %d%%", 0.7f, 0.0f, 4.0f,
                                 PUBLISH_METHOD(feedbackFilter.setFilterRes, float),
                                 PERCENT_CONVERSION);
 
+// auto reverbSetting = Setting("Reverb: %d%%", 0.2f, 0.0f, 1.0f,
+//                              SIMPLE_LAMBDA(float f, f + 0.05f),
+//                              SIMPLE_LAMBDA(float f, f - 0.05f),
+//                              PUBLISH_METHOD(reverbFilter.time, float),
+//                              PERCENT_CONVERSION);
+
+auto flangeSetting = Setting("Flange: %d", false, false, true,
+                             SIMPLE_LAMBDA(bool b, !b),
+                             SIMPLE_LAMBDA(bool b, !b),
+                             PUBLISH_METHOD(flangeFilter.enable, bool));
+
+auto chorusSetting = Setting("Chorus: %d", 1, 0, 10,
+                             SIMPLE_LAMBDA(int i, i + 1),
+                             SIMPLE_LAMBDA(int i, i - 1),
+                             PUBLISH_METHOD(chorusFilter.voices, int));
+
 auto menu = Menu(display,
                  Slide(volumeSetting, voiceSetting, "main"),
                  Slide(crusherBitsSetting, crusherSampleRateSetting, "bit crusher"),
@@ -148,12 +166,16 @@ auto menu = Menu(display,
                  Slide(driveSetting, wetDrySetting, "drive"),
                  Slide(delayLeftSetting, delayRightSetting, "delay"),
                  Slide(feedbackSetting, crossFeedbackSetting, "feedback"),
-                 Slide(filterFreqSetting, filterResSetting, "filter"));
+                 Slide(filterFreqSetting, filterResSetting, "filter"),
+                 Slide(flangeSetting, chorusSetting, "flange"));
 
 class EncoderLeft : public EncoderControl
 {
 public:
-  void inc() override { menu.leftInc(); }
+  void inc() override
+  {
+    menu.leftInc();
+  }
   void decr() override { menu.leftDec(); }
   void buttonDown() override { menu.leftDown(); }
   void buttonUp() override { menu.leftUp(); }
@@ -180,7 +202,7 @@ void setup()
   trellis.begin();
   trellis.setBrightness(255);
 
-  AudioMemory(280); // Increased mainly to support the delay effects
+  AudioMemory(200); // Increased mainly to support the delay effects
 
   // Initialize processor and memory measurements
   AudioProcessorUsageMaxReset();
@@ -191,6 +213,8 @@ void setup()
   synthinstance.begin();
 
   // setup all filters
+  synthinstance.pushFilter(flangeFilter);
+  synthinstance.pushFilter(chorusFilter);
   synthinstance.pushFilter(feedbackFilter);
   synthinstance.pushFilter(bitCrusherFilter);
   synthinstance.pushFilter(limiterFilter);
