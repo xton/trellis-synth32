@@ -51,6 +51,7 @@ class Setting : public ISetting
 private:
     const char *fmt;
 
+    V initialValue;
     V value;
     V minValue;
     V maxValue;
@@ -73,7 +74,7 @@ public:
             Publisher publisher_,
             IntConverter intConverter_ = NULL)
         : fmt(fmt_),
-          value(value_),
+          value(value_), initialValue(value_),
           minValue(minValue_),
           maxValue(maxValue_),
           incrementor(incrementor_),
@@ -87,6 +88,11 @@ public:
     {
         value = newValue;
         publisher(value);
+    }
+
+    void reset()
+    {
+        set(initialValue);
     }
 
     void increment()
@@ -135,7 +141,9 @@ class Menu
 {
     Adafruit_SSD1306 &gfx;
 
-    Slide slides[N];
+    Slide plainSlides[N];
+    Slide &presetSlide;
+    Slide *slides[N + 1];
     int currentSlide = 0;
     bool leftIsDown = false;
     bool rightIsDown = false;
@@ -143,9 +151,17 @@ class Menu
 
 public:
     Menu(Adafruit_SSD1306 &gfx_,
+         Slide &presetSlide_,
          Args... slides_)
         : gfx(gfx_),
-          slides{slides_...} {}
+          plainSlides{slides_...},
+          presetSlide(presetSlide_)
+    {
+        for (int i = 0; i < N; i++)
+            slides[i] = &plainSlides[i];
+
+        slides[N] = &presetSlide;
+    }
 
     void display()
     {
@@ -156,13 +172,13 @@ public:
         gfx.setTextColor(SSD1306_WHITE); // Draw white text
 
         // title
-        slides[currentSlide].right.display(gfx);
-        if (slides[currentSlide].title)
+        slides[currentSlide]->right.display(gfx);
+        if (slides[currentSlide]->title)
         {
             gfx.setTextSize(2);
             gfx.setCursor(10, 10);
             gfx.setFont(&TomThumb);
-            gfx.print(slides[currentSlide].title);
+            gfx.print(slides[currentSlide]->title);
         }
 
         // settings
@@ -170,7 +186,7 @@ public:
         gfx.setFont(&FreeSansBold9pt7b);
         gfx.setCursor(0, 31);
         gfx.print("< ");
-        slides[currentSlide].left.display(gfx);
+        slides[currentSlide]->left.display(gfx);
         gfx.setCursor(0, 53);
         gfx.print("> ");
         gfx.display();
@@ -179,8 +195,8 @@ public:
     void nextSlide()
     {
         currentSlide++;
-        if (currentSlide >= (int)N)
-            currentSlide = N - 1;
+        if (currentSlide > (int)N)
+            currentSlide = N;
         display();
     }
 
@@ -222,7 +238,7 @@ public:
         }
         else
         {
-            slides[currentSlide].left.increment();
+            slides[currentSlide]->left.increment();
             display();
         }
     }
@@ -234,7 +250,7 @@ public:
         }
         else
         {
-            slides[currentSlide].left.decrement();
+            slides[currentSlide]->left.decrement();
             display();
         }
     }
@@ -246,7 +262,7 @@ public:
         }
         else
         {
-            slides[currentSlide].right.increment();
+            slides[currentSlide]->right.increment();
             display();
         }
     }
@@ -258,17 +274,17 @@ public:
         }
         else
         {
-            slides[currentSlide].right.decrement();
+            slides[currentSlide]->right.decrement();
             display();
         }
     }
 
     void begin()
     {
-        for (size_t i = 0; i < N; i++)
+        for (size_t i = 0; i <= N; i++)
         {
-            slides[i].right.begin();
-            slides[i].left.begin();
+            slides[i]->right.begin();
+            slides[i]->left.begin();
         }
         began = true;
         display();
@@ -277,7 +293,130 @@ public:
 
 // Deduction guide
 template <typename... Args>
-Menu(Adafruit_SSD1306 &, Args...) -> Menu<sizeof...(Args), Args...>;
+Menu(Adafruit_SSD1306 &, Slide &, Args...) -> Menu<sizeof...(Args), Args...>;
 
 #define SIMPLE_LAMBDA(decl, expr) (+[](decl) { return expr; })
 #define PUBLISH_METHOD(func, tpe) (+[](tpe i) { return func(i); })
+
+struct Preset_
+{
+    const char *title;
+    void (*callback)();
+};
+
+#define Preset(title, impl) \
+    Preset_ { title, []() impl }
+
+template <size_t N, typename... Args>
+class PresetSlide : public Slide
+{
+    Preset_ presets[N];
+    size_t selection = 0;
+
+    unsigned long changeNow = 0;
+    size_t countDown;
+
+    /// @brief selects which preset to use
+    class LeftSetting : public ISetting
+    {
+        PresetSlide<N> &parent;
+
+    public:
+        LeftSetting(PresetSlide<N> &parent_) : parent(parent_) {}
+
+        virtual void increment()
+        {
+            parent.selection = std::min(N - 1, parent.selection + 1);
+            parent.changeNow = 0;
+            parent.countDown = 0;
+        }
+        virtual void decrement()
+        {
+            parent.selection = std::max(0U, parent.selection - 1);
+            parent.changeNow = 0;
+            parent.countDown = 0;
+        }
+
+        // display the setting on the given display with
+        // a preconfigured cursor and text style
+        virtual void display(Adafruit_GFX &d) { d.printf("%s", parent.presets[selection].title); }
+
+        virtual void begin() {}
+    };
+
+    /// @brief confirms the selection
+    class RightSetting : public ISetting
+    {
+        PresetSlide<N> &parent;
+
+    public:
+        RightSetting(PresetSlide<N> &parent_) : parent(parent_) {}
+
+        virtual void increment()
+        {
+            // change in 3 seconds
+            parent.changeNow = millis() + 3000;
+        }
+        virtual void decrement()
+        {
+            // cancel change
+            parent.changeNow = 0;
+            parent.countDown = 0;
+        }
+
+        // display the setting on the given display with
+        // a preconfigured cursor and text style
+        virtual void display(Adafruit_GFX &d)
+        {
+            if (parent.changeNow == 0)
+            {
+                d.print("  confirm? (up)");
+            }
+            else
+            {
+                d.printf("...%d", parent.countDown);
+            }
+        }
+        virtual void begin() {}
+    };
+
+    LeftSetting _left;
+    RightSetting _right;
+
+public:
+    PresetSlide(Args... presets_)
+        : presets{presets_...},
+          Slide(_left, _right, "presets"),
+          _left(LeftSetting(this)),
+          _right(RightSetting(this)) {}
+
+    /// @brief Poll this
+    /// @return true if display should be updated.
+    bool tick()
+    {
+        auto now = millis();
+        if (changeNow == 0)
+        {
+            return false;
+        }
+        else if (now > changeNow)
+        {
+            // do it!
+            presets[selection]();
+            changeNow = 0;
+            countDown = 0;
+            return true;
+        }
+        else
+        {
+            size_t newCountDown = (changeNow - now) / 1000;
+            bool shouldUpdate = newCountDown == countDown;
+            countDown = newCountDown;
+            return shouldUpdate;
+        }
+    }
+};
+
+// Deduction guide
+template <typename... Args>
+PresetSlide(Args...) -> PresetSlide<sizeof...(Args), Args...>;

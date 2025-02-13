@@ -159,7 +159,26 @@ auto chorusSetting = Setting("Chorus: %d", 1, 0, 10,
                              SIMPLE_LAMBDA(int i, i - 1),
                              PUBLISH_METHOD(chorusFilter.voices, int));
 
-auto menu = Menu(display,
+auto presetSlide = PresetSlide(
+    Preset("flat", {
+      wetDrySetting.set(0);
+    }),
+    Preset("default", {
+      crusherBitsSetting.reset();
+      crusherSampleRateSetting.reset();
+      driveSetting.reset();
+      wetDrySetting.reset();
+      delayRightSetting.reset();
+      delayLeftSetting.reset();
+      feedbackSetting.reset();
+      crossFeedbackSetting.reset();
+      filterFreqSetting.reset();
+      filterResSetting.reset();
+      flangeSetting.reset();
+      chorusSetting.reset();
+    }));
+
+auto menu = Menu(display, presetSlide,
                  Slide(volumeSetting, voiceSetting, "main"),
                  Slide(crusherBitsSetting, crusherSampleRateSetting, "bit crusher"),
 
