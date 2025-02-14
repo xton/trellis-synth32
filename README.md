@@ -9,3 +9,4 @@ I got an Adafruit NeoTrellis M4 and I've spent a while hacking on it to make sel
 - An interactive menu system that controls the above using two rotary encoders and an oled display.
 - Configurable (in code) presets.
 
+![my synth](synth.jpg)
