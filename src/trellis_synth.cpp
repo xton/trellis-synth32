@@ -178,7 +178,7 @@ auto presetSlide = PresetSlide(
       chorusSetting.reset();
     }));
 
-auto menu = Menu(display, presetSlide,
+auto menu = Menu(display,
                  Slide(volumeSetting, voiceSetting, "main"),
                  Slide(crusherBitsSetting, crusherSampleRateSetting, "bit crusher"),
 
@@ -186,7 +186,8 @@ auto menu = Menu(display, presetSlide,
                  Slide(delayLeftSetting, delayRightSetting, "delay"),
                  Slide(feedbackSetting, crossFeedbackSetting, "feedback"),
                  Slide(filterFreqSetting, filterResSetting, "filter"),
-                 Slide(flangeSetting, chorusSetting, "flange"));
+                 Slide(flangeSetting, chorusSetting, "flange"),
+                 presetSlide.getSlide());
 
 class EncoderLeft : public EncoderControl
 {

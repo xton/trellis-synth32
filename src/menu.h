@@ -1,5 +1,7 @@
 #pragma once
 
+#include <new>
+
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Fonts/FreeSansBold9pt7b.h>
@@ -51,8 +53,8 @@ class Setting : public ISetting
 private:
     const char *fmt;
 
-    V initialValue;
     V value;
+    V initialValue;
     V minValue;
     V maxValue;
 
@@ -141,9 +143,7 @@ class Menu
 {
     Adafruit_SSD1306 &gfx;
 
-    Slide plainSlides[N];
-    Slide &presetSlide;
-    Slide *slides[N + 1];
+    Slide slides[N];
     int currentSlide = 0;
     bool leftIsDown = false;
     bool rightIsDown = false;
@@ -151,16 +151,10 @@ class Menu
 
 public:
     Menu(Adafruit_SSD1306 &gfx_,
-         Slide &presetSlide_,
          Args... slides_)
         : gfx(gfx_),
-          plainSlides{slides_...},
-          presetSlide(presetSlide_)
+          slides{slides_...}
     {
-        for (int i = 0; i < N; i++)
-            slides[i] = &plainSlides[i];
-
-        slides[N] = &presetSlide;
     }
 
     void display()
@@ -172,13 +166,12 @@ public:
         gfx.setTextColor(SSD1306_WHITE); // Draw white text
 
         // title
-        slides[currentSlide]->right.display(gfx);
-        if (slides[currentSlide]->title)
+        if (slides[currentSlide].title)
         {
             gfx.setTextSize(2);
             gfx.setCursor(10, 10);
             gfx.setFont(&TomThumb);
-            gfx.print(slides[currentSlide]->title);
+            gfx.print(slides[currentSlide].title);
         }
 
         // settings
@@ -186,17 +179,18 @@ public:
         gfx.setFont(&FreeSansBold9pt7b);
         gfx.setCursor(0, 31);
         gfx.print("< ");
-        slides[currentSlide]->left.display(gfx);
+        slides[currentSlide].left.display(gfx);
         gfx.setCursor(0, 53);
         gfx.print("> ");
+        slides[currentSlide].right.display(gfx);
         gfx.display();
     }
 
     void nextSlide()
     {
         currentSlide++;
-        if (currentSlide > (int)N)
-            currentSlide = N;
+        if (currentSlide >= (int)N)
+            currentSlide = N - 1;
         display();
     }
 
@@ -238,7 +232,7 @@ public:
         }
         else
         {
-            slides[currentSlide]->left.increment();
+            slides[currentSlide].left.increment();
             display();
         }
     }
@@ -250,7 +244,7 @@ public:
         }
         else
         {
-            slides[currentSlide]->left.decrement();
+            slides[currentSlide].left.decrement();
             display();
         }
     }
@@ -262,7 +256,7 @@ public:
         }
         else
         {
-            slides[currentSlide]->right.increment();
+            slides[currentSlide].right.increment();
             display();
         }
     }
@@ -274,17 +268,17 @@ public:
         }
         else
         {
-            slides[currentSlide]->right.decrement();
+            slides[currentSlide].right.decrement();
             display();
         }
     }
 
     void begin()
     {
-        for (size_t i = 0; i <= N; i++)
+        for (size_t i = 0; i < N; i++)
         {
-            slides[i]->right.begin();
-            slides[i]->left.begin();
+            slides[i].right.begin();
+            slides[i].left.begin();
         }
         began = true;
         display();
@@ -293,7 +287,7 @@ public:
 
 // Deduction guide
 template <typename... Args>
-Menu(Adafruit_SSD1306 &, Slide &, Args...) -> Menu<sizeof...(Args), Args...>;
+Menu(Adafruit_SSD1306 &, Args...) -> Menu<sizeof...(Args), Args...>;
 
 #define SIMPLE_LAMBDA(decl, expr) (+[](decl) { return expr; })
 #define PUBLISH_METHOD(func, tpe) (+[](tpe i) { return func(i); })
@@ -307,32 +301,35 @@ struct Preset_
 #define Preset(title, impl) \
     Preset_ { title, []() impl }
 
-// template <size_t N, typename... Args>
-class PresetSlideImpl : public Slide
+template <size_t N, typename... Args>
+class PresetSlide
 {
 protected:
-    friend class LeftSetting;
-    friend class RightSetting;
-
-    Preset_ *presets = NULL;
-    size_t numPresets = 0;
+    Preset_ presets[N];
     size_t selection = 0;
 
     unsigned long changeNow = 0;
     size_t countDown;
 
+    void setSelection(size_t selection_)
+    {
+        selection = selection_;
+        changeNow = 0;
+        countDown = 0;
+    }
+
     /// @brief selects which preset to use
     class LeftSetting : public ISetting
     {
-        PresetSlideImpl *parent = NULL;
-        friend class PresetSlideImpl;
+    protected:
+        friend class PresetSlide;
+        PresetSlide *parent = NULL;
 
     public:
-        LeftSetting(PresetSlideImpl *parent_) : parent(parent_) {}
-
+        LeftSetting() {}
         virtual void increment()
         {
-            parent->selection = std::min(numPresets - 1, parent->selection + 1);
+            parent->selection = std::min(N - 1, parent->selection + 1);
             parent->changeNow = 0;
             parent->countDown = 0;
         }
@@ -342,22 +339,20 @@ protected:
             parent->changeNow = 0;
             parent->countDown = 0;
         }
-
         // display the setting on the given display with
         // a preconfigured cursor and text style
         virtual void display(Adafruit_GFX &d) { d.printf("%s", parent->presets[parent->selection].title); }
-
         virtual void begin() {}
     };
 
     /// @brief confirms the selection
     class RightSetting : public ISetting
     {
-        PresetSlideImpl *parent = NULL;
-        friend class PresetSlideImpl;
+        friend class PresetSlide;
+        PresetSlide *parent = NULL;
 
     public:
-        RightSetting(PresetSlideImpl *parent_) : parent(parent_) {}
+        RightSetting() {}
 
         virtual void increment()
         {
@@ -387,15 +382,22 @@ protected:
         virtual void begin() {}
     };
 
-    LeftSetting _left;
-    RightSetting _right;
+    friend class LeftSetting;
+    friend class RightSetting;
+
+    LeftSetting leftSetting;
+    RightSetting rightSetting;
+    Slide slide{leftSetting, rightSetting};
 
 public:
-    PresetSlideImpl() : Slide(_left, _right, "presets")
+    PresetSlide(Args... presets_)
+        : presets{presets_...}
     {
-        _left.parent = this;
-        _right.parent = this;
+        leftSetting.parent = this;
+        rightSetting.parent = this;
     }
+
+    Slide getSlide() { return slide; }
 
     /// @brief Poll this
     /// @return true if display should be updated.
@@ -421,20 +423,6 @@ public:
             countDown = newCountDown;
             return shouldUpdate;
         }
-    }
-};
-
-template <size_t N, typename... Args>
-class PresetSlide : public PresetSlideImpl
-{
-    Preset_ presetBuffer[N];
-
-public:
-    PresetSlide(Args... presets_)
-        : presetBuffer{presets_...}
-    {
-        presets = presetBuffer;
-        numPresets = N;
     }
 };
 
