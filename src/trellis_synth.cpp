@@ -162,6 +162,10 @@ auto chorusSetting = Setting("Chorus: %d", 1, 0, 10,
 auto presetSlide = PresetSlide(
     Preset("flat", {
       wetDrySetting.set(0);
+      crusherBitsSetting.reset();
+      crusherSampleRateSetting.reset();
+      flangeSetting.reset();
+      chorusSetting.reset();
     }),
     Preset("default", {
       crusherBitsSetting.reset();
@@ -176,6 +180,27 @@ auto presetSlide = PresetSlide(
       filterResSetting.reset();
       flangeSetting.reset();
       chorusSetting.reset();
+    }),
+    Preset("whine", {
+      driveSetting.set(4.0);
+      wetDrySetting.set(0.6);
+      delayLeftSetting.set(64);
+      delayRightSetting.set(88);
+      feedbackSetting.set(0.29);
+      crossFeedbackSetting.set(0.2);
+      filterFreqSetting.set(550);
+      filterResSetting.set(3.5);
+    }),
+    Preset("screech", {
+      crusherBitsSetting.set(3);
+      driveSetting.set(4.0);
+      wetDrySetting.set(0.6);
+      delayLeftSetting.set(64);
+      delayRightSetting.set(88);
+      feedbackSetting.set(0.09);
+      crossFeedbackSetting.set(0.05);
+      filterFreqSetting.set(630);
+      filterResSetting.set(3.5);
     }));
 
 auto menu = Menu(display,
@@ -311,6 +336,11 @@ void loop()
 
   encoder1.loop();
   encoder2.loop();
+
+  if (presetSlide.tick())
+  {
+    menu.display();
+  }
 
   delay(10);
 }

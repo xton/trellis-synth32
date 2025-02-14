@@ -329,15 +329,21 @@ protected:
         LeftSetting() {}
         virtual void increment()
         {
-            parent->selection = std::min(N - 1, parent->selection + 1);
-            parent->changeNow = 0;
-            parent->countDown = 0;
+            if (parent->selection < N - 1)
+            {
+                parent->selection++;
+                parent->changeNow = 0;
+                parent->countDown = 0;
+            }
         }
         virtual void decrement()
         {
-            parent->selection = std::max(0U, parent->selection - 1);
-            parent->changeNow = 0;
-            parent->countDown = 0;
+            if (parent->selection > 0)
+            {
+                parent->selection--;
+                parent->changeNow = 0;
+                parent->countDown = 0;
+            }
         }
         // display the setting on the given display with
         // a preconfigured cursor and text style
@@ -358,6 +364,7 @@ protected:
         {
             // change in 3 seconds
             parent->changeNow = millis() + 3000;
+            parent->tick(); // side effect: updates countdown
         }
         virtual void decrement()
         {
@@ -372,7 +379,7 @@ protected:
         {
             if (parent->changeNow == 0)
             {
-                d.print("  confirm? (up)");
+                d.print("  yes? (up)");
             }
             else
             {
@@ -387,7 +394,7 @@ protected:
 
     LeftSetting leftSetting;
     RightSetting rightSetting;
-    Slide slide{leftSetting, rightSetting};
+    Slide slide{leftSetting, rightSetting, "presets"};
 
 public:
     PresetSlide(Args... presets_)
@@ -418,7 +425,7 @@ public:
         }
         else
         {
-            size_t newCountDown = (changeNow - now) / 1000;
+            size_t newCountDown = (changeNow - now + 999) / 1000;
             bool shouldUpdate = newCountDown == countDown;
             countDown = newCountDown;
             return shouldUpdate;
