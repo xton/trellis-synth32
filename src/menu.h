@@ -50,6 +50,7 @@ class Setting : public ISetting
     using Mutator = V (*)(V oldValue);
     using Publisher = void (*)(V);
     using IntConverter = int (*)(V);
+    using Displayer = void (*)(Adafruit_GFX &, V);
 
 private:
     const char *fmt;
@@ -65,6 +66,7 @@ private:
 
 public:
     IntConverter intConverter = NULL;
+    Displayer displayer = NULL;
 
     void setIntConverter(IntConverter f) { intConverter = f; }
 
@@ -75,7 +77,8 @@ public:
             Mutator incrementor_,
             Mutator decrementor_,
             Publisher publisher_,
-            IntConverter intConverter_ = NULL)
+            IntConverter intConverter_ = NULL,
+            Displayer displayer_ = NULL)
         : fmt(fmt_),
           value(value_), initialValue(value_),
           minValue(minValue_),
@@ -83,7 +86,8 @@ public:
           incrementor(incrementor_),
           decrementor(decrementor_),
           publisher(publisher_),
-          intConverter(intConverter_)
+          intConverter(intConverter_),
+          displayer(displayer_)
     {
     }
 
@@ -120,13 +124,20 @@ public:
     // a preconfigured cursor and text style
     void display(Adafruit_GFX &d)
     {
-        if (intConverter)
+        if (displayer)
         {
-            d.printf(fmt, intConverter(value));
+            displayer(d, value);
         }
         else
         {
-            d.printf(fmt, value);
+            if (intConverter)
+            {
+                d.printf(fmt, intConverter(value));
+            }
+            else
+            {
+                d.printf(fmt, value);
+            }
         }
     }
 
@@ -182,6 +193,8 @@ public:
         gfx.setCursor(0, 31);
         gfx.print("< ");
         slides[currentSlide].left.display(gfx);
+        gfx.setTextSize(1);
+        gfx.setFont(&FreeSansBold9pt7b);
         gfx.setCursor(0, 53);
         gfx.print("> ");
         slides[currentSlide].right.display(gfx);
@@ -313,6 +326,7 @@ Menu(Adafruit_SSD1306 &, Args...) -> Menu<sizeof...(Args), Args...>;
 
 #define SIMPLE_LAMBDA(decl, expr) (+[](decl) { return expr; })
 #define PUBLISH_METHOD(func, tpe) (+[](tpe i) { return func(i); })
+#define DISPLAY_LAMBDA(decl, impl) (+[](Adafruit_GFX & gfx, decl) impl)
 
 struct Preset_
 {

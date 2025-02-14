@@ -12,6 +12,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <new>
+#include <Fonts/TomThumb.h>
+#include <Fonts/FreeMono9pt7b.h>
 
 #include "menu.h"
 #include "scale_generator.h"
@@ -80,15 +82,24 @@ auto voiceSetting =
             SIMPLE_LAMBDA(int i, i - 1),
             PUBLISH_METHOD(synthinstance.selectVoice, int));
 
-auto scalePatternSetting = Setting<size_t>("Pat: %d", 2u, 0u, NUM_SCALES - 1,
-                                           SIMPLE_LAMBDA(size_t i, i + 1),
-                                           SIMPLE_LAMBDA(size_t i, i - 1),
-                                           PUBLISH_METHOD(synthinstance.selectScalePattern, size_t));
+auto scalePatternSetting = Setting<int>("Pat: %d", 0, 0, NUM_SCALES - 1,
+                                        SIMPLE_LAMBDA(int i, i + 1),
+                                        SIMPLE_LAMBDA(int i, i - 1),
+                                        PUBLISH_METHOD(synthinstance.selectScalePattern, int), NULL,
+                                        DISPLAY_LAMBDA(int i, {
+                                          Serial.printf("set pat %d\n", i);
+                                          gfx.setFont(&TomThumb);
+                                          gfx.printf("%s", SCALE_PATTERNS[i].name);
+                                        }));
 
-auto scaleRootSetting = Setting<size_t>("Root: %d", 2u, 0u, NUM_ROOTS - 1,
-                                        SIMPLE_LAMBDA(size_t i, i + 1),
-                                        SIMPLE_LAMBDA(size_t i, i - 1),
-                                        PUBLISH_METHOD(synthinstance.selectScaleRoot, size_t));
+auto scaleRootSetting = Setting<int>("Root: %d", 0, 0, NUM_ROOTS - 1,
+                                     SIMPLE_LAMBDA(int i, i + 1),
+                                     SIMPLE_LAMBDA(int i, i - 1),
+                                     PUBLISH_METHOD(synthinstance.selectScaleRoot, int), NULL,
+                                     DISPLAY_LAMBDA(int i, {
+                                       Serial.printf("set root %d\n", i);
+                                       gfx.printf("%s", ROOT_NOTE_NAMES[i]);
+                                     }));
 
 auto crusherBitsSetting =
     Setting("Bits: %d", 16, 2, 16,

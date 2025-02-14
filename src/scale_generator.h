@@ -45,9 +45,12 @@ public:
     // Fills the provided array with frequencies for the full 32-note grid
     void generateFullScale(float *frequencies)
     {
+        Serial.printf("Gen for pattern: %s", pattern->name);
+
         // For each row
         for (size_t row = 0; row < ILayer::ROW_COUNT; row++)
         {
+            Serial.printf("\nR%d: ", row);
             float octaveMult = (1 << row); // 1, 2, 4, 8 for each row
 
             // For each column in the row
@@ -55,8 +58,11 @@ public:
             {
                 size_t index = row * ILayer::NOTES_PER_ROW + col;
                 frequencies[index] = rootFreq * pattern->intervals[col] * octaveMult;
+                Serial.printf(" %d", (int)frequencies[index]);
             }
         }
+
+        Serial.println("");
     }
 
     const char *getCurrentScaleName() const
