@@ -14,6 +14,7 @@ public:
 
     virtual void increment() = 0;
     virtual void decrement() = 0;
+    virtual void publish() = 0;
 
     // display the setting on the given display with
     // a preconfigured cursor and text style
@@ -97,21 +98,22 @@ public:
         set(initialValue);
     }
 
+    void publish()
+    {
+        publisher(value);
+    }
+
     void increment()
     {
         value = incrementor(value);
         if (value > maxValue)
             value = maxValue;
-
-        publisher(value);
     }
     void decrement()
     {
         value = decrementor(value);
         if (value < minValue)
             value = minValue;
-
-        publisher(value);
     }
 
     // display the setting on the given display with
@@ -224,7 +226,7 @@ public:
         rightIsDown = false;
     }
 
-    void leftInc()
+    void leftInc(int delta)
     {
         if (leftIsDown || rightIsDown)
         {
@@ -232,11 +234,16 @@ public:
         }
         else
         {
-            slides[currentSlide].left.increment();
+            while (delta > 0)
+            {
+                slides[currentSlide].left.increment();
+                delta--;
+            }
+            slides[currentSlide].left.publish();
             display();
         }
     }
-    void leftDec()
+    void leftDec(int delta)
     {
         if (leftIsDown || rightIsDown)
         {
@@ -244,11 +251,16 @@ public:
         }
         else
         {
-            slides[currentSlide].left.decrement();
+            while (delta > 0)
+            {
+                slides[currentSlide].left.decrement();
+                delta--;
+            }
+            slides[currentSlide].left.publish();
             display();
         }
     }
-    void rightInc()
+    void rightInc(int delta)
     {
         if (leftIsDown || rightIsDown)
         {
@@ -256,11 +268,16 @@ public:
         }
         else
         {
-            slides[currentSlide].right.increment();
+            while (delta > 0)
+            {
+                slides[currentSlide].right.increment();
+                delta--;
+            }
+            slides[currentSlide].right.publish();
             display();
         }
     }
-    void rightDec()
+    void rightDec(int delta)
     {
         if (leftIsDown || rightIsDown)
         {
@@ -268,7 +285,12 @@ public:
         }
         else
         {
-            slides[currentSlide].right.decrement();
+            while (delta > 0)
+            {
+                slides[currentSlide].right.decrement();
+                delta--;
+            }
+            slides[currentSlide].right.publish();
             display();
         }
     }
@@ -327,23 +349,27 @@ protected:
 
     public:
         LeftSetting() {}
+
         virtual void increment()
         {
             if (parent->selection < N - 1)
             {
                 parent->selection++;
-                parent->changeNow = 0;
-                parent->countDown = 0;
             }
         }
+
         virtual void decrement()
         {
             if (parent->selection > 0)
             {
                 parent->selection--;
-                parent->changeNow = 0;
-                parent->countDown = 0;
             }
+        }
+
+        virtual void publish()
+        {
+            parent->changeNow = 0;
+            parent->countDown = 0;
         }
         // display the setting on the given display with
         // a preconfigured cursor and text style
@@ -372,6 +398,8 @@ protected:
             parent->changeNow = 0;
             parent->countDown = 0;
         }
+
+        virtual void publish() {}
 
         // display the setting on the given display with
         // a preconfigured cursor and text style

@@ -24,11 +24,11 @@ public:
         Serial.println("generic button up");
     };
 
-    virtual void inc()
+    virtual void inc(int delta)
     {
         Serial.println("generic inc");
     };
-    virtual void decr()
+    virtual void decr(int delta)
     {
         Serial.println("generic decr");
     };
@@ -52,16 +52,10 @@ public:
     void loop()
     {
         int32_t d = encoder.getEncoderDelta();
-        while (d > 0)
-        {
-            inc();
-            d--;
-        }
-        while (d < 0)
-        {
-            decr();
-            d++;
-        }
+        if (d > 0)
+            inc(d);
+        else if (d < 0)
+            decr(-d);
         bool b = isDown();
         if (b != buttonState)
         {

@@ -217,11 +217,11 @@ auto menu = Menu(display,
 class EncoderLeft : public EncoderControl
 {
 public:
-  void inc() override
+  void inc(int delta) override
   {
-    menu.leftInc();
+    menu.leftInc(delta);
   }
-  void decr() override { menu.leftDec(); }
+  void decr(int delta) override { menu.leftDec(delta); }
   void buttonDown() override { menu.leftDown(); }
   void buttonUp() override { menu.leftUp(); }
 };
@@ -229,8 +229,8 @@ public:
 class EncoderRight : public EncoderControl
 {
 public:
-  void inc() override { menu.rightInc(); }
-  void decr() override { menu.rightDec(); }
+  void inc(int delta) override { menu.rightInc(delta); }
+  void decr(int delta) override { menu.rightDec(delta); }
   void buttonDown() override { menu.rightDown(); }
   void buttonUp() override { menu.rightUp(); }
 };
