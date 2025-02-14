@@ -13,6 +13,7 @@
 #include "filters.h"
 #include "debug.h"
 #include "meow_layer.h"
+#include "scale_generator.h"
 
 class Polysynth32
 {
@@ -47,6 +48,8 @@ private:
     AudioStream *outputLeft = &finalMixLeft;
     AudioStream *outputRight = &finalMixRight;
 
+    ScaleGenerator scaleGen{C3, &SCALE_PATTERNS[4]};
+
 public:
     Polysynth32();
     void begin();
@@ -65,4 +68,15 @@ public:
     AudioStream &getOutputRight() { return *outputRight; }
     void setupScales();
     void selectVoice(uint8_t idx);
+
+    void selectScalePattern(size_t idx)
+    {
+        scaleGen.setPattern(&SCALE_PATTERNS[idx]);
+        setupScales();
+    }
+    void selectScaleRoot(size_t idx)
+    {
+        scaleGen.setRoot(ROOT_NOTES[idx]);
+        setupScales();
+    }
 };

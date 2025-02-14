@@ -14,6 +14,7 @@
 #include <new>
 
 #include "menu.h"
+#include "scale_generator.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -78,6 +79,16 @@ auto voiceSetting =
             SIMPLE_LAMBDA(int i, i + 1),
             SIMPLE_LAMBDA(int i, i - 1),
             PUBLISH_METHOD(synthinstance.selectVoice, int));
+
+auto scalePatternSetting = Setting<size_t>("Pat: %d", 2u, 0u, NUM_SCALES - 1,
+                                           SIMPLE_LAMBDA(size_t i, i + 1),
+                                           SIMPLE_LAMBDA(size_t i, i - 1),
+                                           PUBLISH_METHOD(synthinstance.selectScalePattern, size_t));
+
+auto scaleRootSetting = Setting<size_t>("Root: %d", 2u, 0u, NUM_ROOTS - 1,
+                                        SIMPLE_LAMBDA(size_t i, i + 1),
+                                        SIMPLE_LAMBDA(size_t i, i - 1),
+                                        PUBLISH_METHOD(synthinstance.selectScaleRoot, size_t));
 
 auto crusherBitsSetting =
     Setting("Bits: %d", 16, 2, 16,
@@ -205,6 +216,7 @@ auto presetSlide = PresetSlide(
 
 auto menu = Menu(display,
                  Slide(volumeSetting, voiceSetting, "main"),
+                 Slide(scalePatternSetting, scaleRootSetting, "scale"),
                  Slide(crusherBitsSetting, crusherSampleRateSetting, "bit crusher"),
 
                  Slide(driveSetting, wetDrySetting, "drive"),
