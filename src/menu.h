@@ -307,10 +307,15 @@ struct Preset_
 #define Preset(title, impl) \
     Preset_ { title, []() impl }
 
-template <size_t N, typename... Args>
-class PresetSlide : public Slide
+// template <size_t N, typename... Args>
+class PresetSlideImpl : public Slide
 {
-    Preset_ presets[N];
+protected:
+    friend class LeftSetting;
+    friend class RightSetting;
+
+    Preset_ *presets = NULL;
+    size_t numPresets = 0;
     size_t selection = 0;
 
     unsigned long changeNow = 0;
@@ -319,27 +324,28 @@ class PresetSlide : public Slide
     /// @brief selects which preset to use
     class LeftSetting : public ISetting
     {
-        PresetSlide<N> &parent;
+        PresetSlideImpl *parent = NULL;
+        friend class PresetSlideImpl;
 
     public:
-        LeftSetting(PresetSlide<N> &parent_) : parent(parent_) {}
+        LeftSetting(PresetSlideImpl *parent_) : parent(parent_) {}
 
         virtual void increment()
         {
-            parent.selection = std::min(N - 1, parent.selection + 1);
-            parent.changeNow = 0;
-            parent.countDown = 0;
+            parent->selection = std::min(numPresets - 1, parent->selection + 1);
+            parent->changeNow = 0;
+            parent->countDown = 0;
         }
         virtual void decrement()
         {
-            parent.selection = std::max(0U, parent.selection - 1);
-            parent.changeNow = 0;
-            parent.countDown = 0;
+            parent->selection = std::max(0U, parent->selection - 1);
+            parent->changeNow = 0;
+            parent->countDown = 0;
         }
 
         // display the setting on the given display with
         // a preconfigured cursor and text style
-        virtual void display(Adafruit_GFX &d) { d.printf("%s", parent.presets[selection].title); }
+        virtual void display(Adafruit_GFX &d) { d.printf("%s", parent->presets[parent->selection].title); }
 
         virtual void begin() {}
     };
@@ -347,34 +353,35 @@ class PresetSlide : public Slide
     /// @brief confirms the selection
     class RightSetting : public ISetting
     {
-        PresetSlide<N> &parent;
+        PresetSlideImpl *parent = NULL;
+        friend class PresetSlideImpl;
 
     public:
-        RightSetting(PresetSlide<N> &parent_) : parent(parent_) {}
+        RightSetting(PresetSlideImpl *parent_) : parent(parent_) {}
 
         virtual void increment()
         {
             // change in 3 seconds
-            parent.changeNow = millis() + 3000;
+            parent->changeNow = millis() + 3000;
         }
         virtual void decrement()
         {
             // cancel change
-            parent.changeNow = 0;
-            parent.countDown = 0;
+            parent->changeNow = 0;
+            parent->countDown = 0;
         }
 
         // display the setting on the given display with
         // a preconfigured cursor and text style
         virtual void display(Adafruit_GFX &d)
         {
-            if (parent.changeNow == 0)
+            if (parent->changeNow == 0)
             {
                 d.print("  confirm? (up)");
             }
             else
             {
-                d.printf("...%d", parent.countDown);
+                d.printf("...%d", parent->countDown);
             }
         }
         virtual void begin() {}
@@ -384,11 +391,11 @@ class PresetSlide : public Slide
     RightSetting _right;
 
 public:
-    PresetSlide(Args... presets_)
-        : presets{presets_...},
-          Slide(_left, _right, "presets"),
-          _left(LeftSetting(this)),
-          _right(RightSetting(this)) {}
+    PresetSlideImpl() : Slide(_left, _right, "presets")
+    {
+        _left.parent = this;
+        _right.parent = this;
+    }
 
     /// @brief Poll this
     /// @return true if display should be updated.
@@ -402,7 +409,7 @@ public:
         else if (now > changeNow)
         {
             // do it!
-            presets[selection]();
+            presets[selection].callback();
             changeNow = 0;
             countDown = 0;
             return true;
@@ -414,6 +421,20 @@ public:
             countDown = newCountDown;
             return shouldUpdate;
         }
+    }
+};
+
+template <size_t N, typename... Args>
+class PresetSlide : public PresetSlideImpl
+{
+    Preset_ presetBuffer[N];
+
+public:
+    PresetSlide(Args... presets_)
+        : presetBuffer{presets_...}
+    {
+        presets = presetBuffer;
+        numPresets = N;
     }
 };
 
